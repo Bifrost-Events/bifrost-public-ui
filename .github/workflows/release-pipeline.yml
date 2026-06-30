@@ -5,6 +5,20 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      pipeline:
+        description: Flyt å kjøre
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - prod
+      prod_ref:
+        description: Tag for prod (f.eks. v1.0.0) – kun ved pipeline=prod
+        required: false
+        default: ''
 
 permissions:
   contents: read
@@ -19,9 +33,11 @@ env:
   BACKEND_REPO: Bifrost-Events/bifrost-backend
 
 jobs:
-  # --- main: staging → quality → test ---
+  # --- main / manuell staging: staging → quality → test ---
   backend-staging:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'staging')
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch backend staging deploy
@@ -46,7 +62,9 @@ jobs:
           gh run watch "$run_id" --repo "$BACKEND_REPO" --exit-status
 
   deploy-public-staging:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'staging')
     needs: backend-staging
     uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
     with:
@@ -58,7 +76,9 @@ jobs:
     secrets: inherit
 
   quality-staging:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'staging')
     needs: deploy-public-staging
     uses: ./.github/workflows/quality.yml
     with:
@@ -69,7 +89,9 @@ jobs:
     secrets: inherit
 
   backend-test:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'staging')
     needs: quality-staging
     runs-on: ubuntu-latest
     environment: test-promotion
@@ -92,7 +114,9 @@ jobs:
           gh run watch "$run_id" --repo "$BACKEND_REPO" --exit-status
 
   deploy-public-test:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'staging')
     needs: backend-test
     uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
     with:
@@ -104,7 +128,9 @@ jobs:
     secrets: inherit
 
   quality-test-smoke:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'staging')
     needs: deploy-public-test
     uses: ./.github/workflows/quality.yml
     with:
@@ -114,9 +140,11 @@ jobs:
       skip_db_prepare: 'true'
     secrets: inherit
 
-  # --- tag v*: prod + smoke ---
+  # --- tag v* / manuell prod ---
   backend-prod:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'prod')
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch backend prod deploy
@@ -125,7 +153,7 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}
           repository: ${{ env.BACKEND_REPO }}
           event-type: deploy-prod
-          client-payload: '{"ref":"${{ github.ref_name }}"}'
+          client-payload: ${{ format('{"ref":"{0}"}', github.event_name == 'workflow_dispatch' && inputs.prod_ref != '' && inputs.prod_ref || github.ref_name) }}
 
       - name: Wait for backend prod deploy
         env:
@@ -137,11 +165,13 @@ jobs:
           gh run watch "$run_id" --repo "$BACKEND_REPO" --exit-status
 
   deploy-public-prod:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'prod')
     needs: backend-prod
     uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
     with:
-      ref: ${{ github.ref_name }}
+      ref: ${{ github.event_name == 'workflow_dispatch' && inputs.prod_ref != '' && inputs.prod_ref || github.ref_name }}
       manifest_path: deploy-manifest.json
       checkout_submodules: false
       composer_install: true
@@ -149,7 +179,9 @@ jobs:
     secrets: inherit
 
   quality-prod-smoke:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      startsWith(github.ref, 'refs/tags/v') ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'prod')
     needs: deploy-public-prod
     uses: ./.github/workflows/quality.yml
     with:
