@@ -215,6 +215,8 @@ Produksjon (`quality:prod-smoke`) tar **ikke** suksess-skjermbilder – kun ved 
 
 ## CI
 
-`.github/workflows/quality.yml` – `workflow_dispatch` med valg av `local-quality`, `test`, `staging`, `production`.
+- **Release pipeline** (`.github/workflows/release-pipeline.yml`) – `main` → staging deploy → quality → test; `v*` → prod smoke
+- **Quality** (`.github/workflows/quality.yml`) – `workflow_call` + manuell `workflow_dispatch`
+- **Deploy (manual)** (`.github/workflows/deploy.yml`) – enkelt-miljø ved behov
 
-Staging/test-domener må være deployet og nåbare fra GitHub runners.
+Staging/test-domener må være deployet og nåbare fra GitHub runners. CI setter `QUALITY_SKIP_DB_PREPARE=true` inntil staging-DB er tilgjengelig fra Actions (se [deploy-staging-setup.md](docs/deploy-staging-setup.md)).

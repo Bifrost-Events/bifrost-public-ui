@@ -1,0 +1,160 @@
+# Bifrost release: main → backend staging → public staging → quality → test | tag v* → prod + smoke
+name: Release pipeline
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+
+permissions:
+  contents: read
+  actions: read
+  deployments: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  BACKEND_REPO: Bifrost-Events/bifrost-backend
+
+jobs:
+  # --- main: staging → quality → test ---
+  backend-staging:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch backend staging deploy
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: ${{ env.BACKEND_REPO }}
+          event-type: deploy-staging
+          client-payload: '{"ref":"main"}'
+
+      - name: Wait for backend staging deploy
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          set -euo pipefail
+          sleep 20
+          run_id=$(gh run list --repo "$BACKEND_REPO" --workflow=deploy.yml --limit 5 --json databaseId,event,status -q '[.[] | select(.event=="repository_dispatch" or .event=="push")][0].databaseId')
+          if [ -z "$run_id" ] || [ "$run_id" = "null" ]; then
+            echo "::error::Fant ingen backend deploy-run"
+            exit 1
+          fi
+          gh run watch "$run_id" --repo "$BACKEND_REPO" --exit-status
+
+  deploy-public-staging:
+    if: github.ref == 'refs/heads/main'
+    needs: backend-staging
+    uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
+    with:
+      ref: main
+      manifest_path: deploy-manifest.json
+      checkout_submodules: false
+      composer_install: true
+      environments: '["hjellum-no-bifrostevents-public-staging"]'
+    secrets: inherit
+
+  quality-staging:
+    if: github.ref == 'refs/heads/main'
+    needs: deploy-public-staging
+    uses: ./.github/workflows/quality.yml
+    with:
+      quality_env: staging
+      quality_app: all
+      test_scope: full
+      skip_db_prepare: 'true'
+    secrets: inherit
+
+  backend-test:
+    if: github.ref == 'refs/heads/main'
+    needs: quality-staging
+    runs-on: ubuntu-latest
+    environment: test-promotion
+    steps:
+      - name: Dispatch backend test deploy
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: ${{ env.BACKEND_REPO }}
+          event-type: deploy-test
+          client-payload: '{"ref":"main"}'
+
+      - name: Wait for backend test deploy
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          set -euo pipefail
+          sleep 20
+          run_id=$(gh run list --repo "$BACKEND_REPO" --workflow=deploy.yml --limit 5 --json databaseId,event -q '[.[] | select(.event=="repository_dispatch")][0].databaseId')
+          gh run watch "$run_id" --repo "$BACKEND_REPO" --exit-status
+
+  deploy-public-test:
+    if: github.ref == 'refs/heads/main'
+    needs: backend-test
+    uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
+    with:
+      ref: main
+      manifest_path: deploy-manifest.json
+      checkout_submodules: false
+      composer_install: true
+      environments: '["hjellum-no-bifrostevents-public-test"]'
+    secrets: inherit
+
+  quality-test-smoke:
+    if: github.ref == 'refs/heads/main'
+    needs: deploy-public-test
+    uses: ./.github/workflows/quality.yml
+    with:
+      quality_env: test
+      quality_app: all
+      test_scope: smoke
+      skip_db_prepare: 'true'
+    secrets: inherit
+
+  # --- tag v*: prod + smoke ---
+  backend-prod:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Dispatch backend prod deploy
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.PAT_TOKEN }}
+          repository: ${{ env.BACKEND_REPO }}
+          event-type: deploy-prod
+          client-payload: '{"ref":"${{ github.ref_name }}"}'
+
+      - name: Wait for backend prod deploy
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          set -euo pipefail
+          sleep 20
+          run_id=$(gh run list --repo "$BACKEND_REPO" --workflow=deploy.yml --limit 5 --json databaseId,event -q '[.[] | select(.event=="repository_dispatch")][0].databaseId')
+          gh run watch "$run_id" --repo "$BACKEND_REPO" --exit-status
+
+  deploy-public-prod:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: backend-prod
+    uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
+    with:
+      ref: ${{ github.ref_name }}
+      manifest_path: deploy-manifest.json
+      checkout_submodules: false
+      composer_install: true
+      environments: '["hjellum-no-bifrostevents-public"]'
+    secrets: inherit
+
+  quality-prod-smoke:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: deploy-public-prod
+    uses: ./.github/workflows/quality.yml
+    with:
+      quality_env: production
+      quality_app: all
+      test_scope: smoke
+      skip_db_prepare: 'true'
+    secrets: inherit

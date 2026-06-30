@@ -1,26 +1,61 @@
-# Deploy via Deploy-Admin (FTP).
-# Konfigurer app_folder og GitHub Environment i Deploy-Admin før første deploy.
-name: Deploy
+# Manuell enkelt-deploy via Deploy-Admin (FTP).
+# Automatisk main/tag-flyt: se release-pipeline.yml
+name: Deploy (manual)
 
 on:
-  push:
-    branches: [main]
-    tags: ['v*']
   workflow_dispatch:
     inputs:
       ref:
         description: Branch eller tag
         required: true
         default: main
+      target:
+        description: Deploy-miljø
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - test
+          - prod
 
 jobs:
-  deploy:
+  deploy-staging:
+    if: inputs.target == 'staging'
     uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
     permissions:
       contents: read
       deployments: write
     with:
-      ref: ${{ github.event.inputs.ref || github.ref_name }}
+      ref: ${{ inputs.ref }}
+      manifest_path: deploy-manifest.json
+      checkout_submodules: false
+      composer_install: true
+      environments: '["hjellum-no-bifrostevents-public-staging"]'
+    secrets: inherit
+
+  deploy-test:
+    if: inputs.target == 'test'
+    uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
+    permissions:
+      contents: read
+      deployments: write
+    with:
+      ref: ${{ inputs.ref }}
+      manifest_path: deploy-manifest.json
+      checkout_submodules: false
+      composer_install: true
+      environments: '["hjellum-no-bifrostevents-public-test"]'
+    secrets: inherit
+
+  deploy-prod:
+    if: inputs.target == 'prod'
+    uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
+    permissions:
+      contents: read
+      deployments: write
+    with:
+      ref: ${{ inputs.ref }}
       manifest_path: deploy-manifest.json
       checkout_submodules: false
       composer_install: true

@@ -114,4 +114,8 @@ Public-ui resolver aktiv cup fra HTTP-host via `GET /api/tenant/resolve?host=` p
 
 ## Deploy
 
-Kopier `.github/workflows/deploy-admin-ftp-github-secrets.yml` fra `bifrost-admin-ui` hvis den mangler, og konfigurer Deploy-Admin med eget `app_folder` (f.eks. `bifrostpublicui/`).
+- **Release pipeline** (`.github/workflows/release-pipeline.yml`) – `main` → staging → quality → test; `v*` → prod
+- **Manuell deploy** (`.github/workflows/deploy.yml`) – `workflow_dispatch` per miljø
+- Deploy-Admin: `app_folder` = `bifrostpublicui/`, miljøer `hjellum-no-bifrostevents-public{-staging,-test,}`
+
+Krever `PAT_TOKEN` repository secret for `repository_dispatch` til backend. Se [docs/deploy-staging-setup.md](docs/deploy-staging-setup.md) og [Deploy-Admin bifrost-miljøer](../../platformstandard/Deploy-Admin/docs/bifrost-deploy-environments.md).

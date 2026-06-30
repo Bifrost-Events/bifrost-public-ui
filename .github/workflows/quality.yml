@@ -1,6 +1,27 @@
 name: Quality (Playwright)
 
 on:
+  workflow_call:
+    inputs:
+      quality_env:
+        description: Miljø (test / staging / production)
+        required: true
+        type: string
+      quality_app:
+        description: Cup (all / slatlem / jaktfeltcup / namdal)
+        required: false
+        default: all
+        type: string
+      test_scope:
+        description: Testomfang (full / smoke)
+        required: false
+        default: full
+        type: string
+      skip_db_prepare:
+        description: Hopp over database prepare (CI default true)
+        required: false
+        default: 'true'
+        type: string
   workflow_dispatch:
     inputs:
       quality_env:
@@ -31,30 +52,29 @@ on:
         options:
           - full
           - smoke
-  push:
-    branches:
-      - develop
-    paths:
-      - 'quality/**'
-      - 'app/**'
-      - 'routes/**'
-      - 'config/**'
-      - 'playwright.config.ts'
-      - 'package.json'
+      skip_db_prepare:
+        description: Hopp over database prepare
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
 
 concurrency:
-  group: quality-${{ github.ref }}
+  group: quality-${{ github.workflow }}-${{ inputs.quality_env || github.event.inputs.quality_env || 'staging' }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   quality:
-    name: Playwright (${{ github.event_name == 'workflow_dispatch' && inputs.quality_env || 'staging' }})
+    name: Playwright (${{ inputs.quality_env || github.event.inputs.quality_env || 'staging' }})
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     env:
-      QUALITY_ENV: ${{ github.event_name == 'workflow_dispatch' && inputs.quality_env || 'staging' }}
-      QUALITY_APP: ${{ github.event_name == 'workflow_dispatch' && inputs.quality_app || 'all' }}
+      QUALITY_ENV: ${{ inputs.quality_env || github.event.inputs.quality_env }}
+      QUALITY_APP: ${{ inputs.quality_app || github.event.inputs.quality_app || 'all' }}
+      QUALITY_SKIP_DB_PREPARE: ${{ inputs.skip_db_prepare || github.event.inputs.skip_db_prepare || 'true' }}
 
     steps:
       - name: Checkout
@@ -74,10 +94,7 @@ jobs:
 
       - name: Run quality tests
         run: |
-          SCOPE="full"
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            SCOPE="${{ inputs.test_scope }}"
-          fi
+          SCOPE="${{ inputs.test_scope || github.event.inputs.test_scope || 'full' }}"
           if [ "$SCOPE" = "smoke" ] || [ "$QUALITY_ENV" = "production" ]; then
             npx playwright test quality/tests/smoke
           else
