@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch backend staging deploy
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
           repository: ${{ env.BACKEND_REPO }}
@@ -97,7 +97,7 @@ jobs:
     environment: test-promotion
     steps:
       - name: Dispatch backend test deploy
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
           repository: ${{ env.BACKEND_REPO }}
@@ -148,7 +148,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch backend prod deploy
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.PAT_TOKEN }}
           repository: ${{ env.BACKEND_REPO }}
