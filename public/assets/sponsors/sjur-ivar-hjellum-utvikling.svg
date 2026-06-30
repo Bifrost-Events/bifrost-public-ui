@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="460" height="160" viewBox="0 0 460 160" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#FFFFFF"/>
+
+  <g transform="translate(80,80)">
+    <circle cx="-30" cy="-15" r="5" fill="#2D6CDF"/>
+    <circle cx="-30" cy="15" r="5" fill="#2D6CDF"/>
+    <circle cx="0" cy="0" r="6" fill="#2D6CDF"/>
+    <circle cx="30" cy="0" r="5" fill="#0EA5A4"/>
+
+    <line x1="-30" y1="-15" x2="0" y2="0" stroke="#2D6CDF" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="-30" y1="15" x2="0" y2="0" stroke="#2D6CDF" stroke-width="2.5" stroke-linecap="round"/>
+    <line x1="0" y1="0" x2="25" y2="0" stroke="#2D6CDF" stroke-width="3" stroke-linecap="round"/>
+
+    <polygon points="30,0 22,-5 22,5" fill="#0EA5A4"/>
+  </g>
+
+  <text x="160" y="72" font-family="Segoe UI, Inter, sans-serif" font-size="26" font-weight="600" fill="#0B0F14">
+    Sjur Ivar Hjellum
+  </text>
+
+  <text x="160" y="102" font-family="Segoe UI, Inter, sans-serif" font-size="14" font-weight="700" letter-spacing="3" fill="#2D6CDF">
+    UTVIKLING
+  </text>
+</svg>
+

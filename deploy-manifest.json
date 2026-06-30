@@ -1,0 +1,35 @@
+{
+  "description": "Bifrost Public UI – filtre for deploy-package (rsync).",
+  "public_dir": "public",
+  "include": [
+    "app/",
+    "config/",
+    "public/",
+    "routes/",
+    "vendor/",
+    "composer.json",
+    "composer.lock",
+    ".env.example"
+  ],
+  "exclude": [
+    ".git",
+    ".github",
+    ".env",
+    ".env.*",
+    "docs",
+    "node_modules",
+    "tests",
+    "*.log",
+    ".idea",
+    ".vscode"
+  ],
+  "ftpExclude": [
+    ".git",
+    ".github",
+    "node_modules",
+    ".env"
+  ],
+  "remoteProtect": [
+    ".env"
+  ]
+}

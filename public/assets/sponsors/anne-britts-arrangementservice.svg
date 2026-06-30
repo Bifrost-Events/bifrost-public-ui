@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="500" height="170" viewBox="0 0 500 170" xmlns="http://www.w3.org/2000/svg">
+  <rect width="100%" height="100%" fill="#FFFFFF"/>
+
+  <g transform="translate(85,85)">
+    <path d="M-26,18
+             C-26,-8 -6,-22 14,-18
+             C24,-16 31,-10 31,-2
+             C31,8 21,14 8,14
+             C-2,14 -10,11 -16,6"
+          fill="none"
+          stroke="#BE185D"
+          stroke-width="6"
+          stroke-linecap="round"
+          stroke-linejoin="round"/>
+
+    <circle cx="-26" cy="18" r="5" fill="#D97706"/>
+    <circle cx="31" cy="-2" r="5" fill="#BE185D"/>
+  </g>
+
+  <text x="165" y="72" font-family="Segoe UI, Inter, sans-serif" font-size="28" font-weight="600" fill="#111827">
+    Anne Britts
+  </text>
+
+  <text x="165" y="104" font-family="Segoe UI, Inter, sans-serif" font-size="15" font-weight="700" letter-spacing="2.2" fill="#B45309">
+    ARRANGEMENTSERVICE
+  </text>
+</svg>
+
