@@ -11,9 +11,28 @@ final class CupConfigLoader
 {
     /** @var array<string, string> host (uten port) => config-filnavn */
     private const HOST_MAP = [
-        'namdal.jaktfeltkarusell.local' => 'namdal-jaktfeltkarusell.json',
+        // Lokal utvikling / quality (forenklet hostnames)
+        'slatlem.local' => 'slatlem-cup.json',
         'jaktfeltcup.local' => 'nasjonal-15m-jaktfeltcup.json',
+        'namdal.local' => 'namdal-jaktfeltkarusell.json',
+        // Legacy lokale hostnames (bakoverkompatibilitet)
         'slatlemcup.local' => 'slatlem-cup.json',
+        'namdal.jaktfeltkarusell.local' => 'namdal-jaktfeltkarusell.json',
+        // Test (sky, manuell demo)
+        'test.slatlemcup.no' => 'slatlem-cup.json',
+        'test.jaktfeltcup.no' => 'nasjonal-15m-jaktfeltcup.json',
+        'test.namdal.jaktfeltkarusell.no' => 'namdal-jaktfeltkarusell.json',
+        // Staging (automatisk quality)
+        'staging.slatlemcup.no' => 'slatlem-cup.json',
+        'staging.jaktfeltcup.no' => 'nasjonal-15m-jaktfeltcup.json',
+        'staging.namdal.jaktfeltkarusell.no' => 'namdal-jaktfeltkarusell.json',
+        // Produksjon
+        'slatlemcup.no' => 'slatlem-cup.json',
+        'www.slatlemcup.no' => 'slatlem-cup.json',
+        'jaktfeltcup.no' => 'nasjonal-15m-jaktfeltcup.json',
+        'www.jaktfeltcup.no' => 'nasjonal-15m-jaktfeltcup.json',
+        'namdal.jaktfeltkarusell.no' => 'namdal-jaktfeltkarusell.json',
+        'www.namdal.jaktfeltkarusell.no' => 'namdal-jaktfeltkarusell.json',
     ];
 
     /** @var array<string, mixed>|null */

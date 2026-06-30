@@ -1,0 +1,15 @@
+environment: local-quality
+description: Lokal automatisk Playwright – egen resetbar database
+timeouts:
+  test: 60000
+  expect: 10000
+  action: 15000
+  navigation: 30000
+screenshots:
+  onSuccess: true
+  onFailure: true
+console:
+  failOnError: true
+  failOnPageError: true
+database:
+  prepareBeforeRun: true

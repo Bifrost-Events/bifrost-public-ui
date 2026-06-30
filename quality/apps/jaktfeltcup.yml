@@ -1,0 +1,28 @@
+name: Nasjonal 15m Jaktfeltcup
+key: jaktfeltcup
+cupId: nasjonal-15m-jaktfeltcup
+hostHeader: jaktfeltcup.local
+hosts:
+  local-dev: http://jaktfeltcup.local
+  local-quality: http://jaktfeltcup.local
+  test: https://test.jaktfeltcup.no
+  staging: https://staging.jaktfeltcup.no
+  production: https://jaktfeltcup.no
+expected:
+  titleContains: Jaktfeltcup
+  visibleText:
+    - Jaktfeltcup
+  cupKey: nasjonal-15m-jaktfeltcup
+routes:
+  - path: /
+    name: Forside
+  - path: /calendar
+    name: Stevnekalender
+  - path: /results
+    name: Resultater
+  - path: /sammenlagt
+    name: Sammenlagt
+  - path: /arkiv
+    name: Arkiv
+  - path: /om
+    name: Om

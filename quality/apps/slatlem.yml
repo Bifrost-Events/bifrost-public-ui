@@ -1,0 +1,26 @@
+name: Slatlem Cup
+key: slatlem
+cupId: slatlem-cup
+hostHeader: slatlemcup.local
+hosts:
+  local-dev: http://slatlemcup.local
+  local-quality: http://slatlemcup.local
+  test: https://test.slatlemcup.no
+  staging: https://staging.slatlemcup.no
+  production: https://slatlemcup.no
+expected:
+  titleContains: Slatlem
+  visibleText:
+    - Slatlem
+  cupKey: slatlem-cup
+routes:
+  - path: /
+    name: Forside
+  - path: /calendar
+    name: Stevnekalender
+  - path: /results
+    name: Resultater
+  - path: /sammenlagt
+    name: Sammenlagt
+  - path: /om
+    name: Om cupen

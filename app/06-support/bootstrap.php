@@ -22,6 +22,7 @@ if (\App\Support\Environment::isDevelopment() || (($_ENV['APP_DEBUG'] ?? 'false'
 }
 
 \App\Support\Config::load('app');
+\App\Support\Config::load('environment');
 \App\Support\Config::load('backend');
 \App\Support\Config::load('navigation');
 \App\Support\Config::load('agreements');

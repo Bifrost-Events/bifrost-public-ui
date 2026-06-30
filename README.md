@@ -10,8 +10,15 @@ Bygget med samme MVC-mønster som `bifrost-admin-ui` og `jaktfeltnamdalen` (se `
 
 | Miljø | URL |
 |-------|-----|
-| XAMPP Apache (anbefalt) | http://jaktfeltcup.local |
+| XAMPP Apache (anbefalt) | http://jaktfeltcup.local (eller `slatlemcup.local`, `namdal.jaktfeltkarusell.local`) |
 | PHP innebygd server | http://localhost:8084 |
+
+### Miljøprofiler
+
+Se [quality/README.md](quality/README.md) for `local-dev`, `local-quality`, `test`, `staging` og `production`.
+
+- **Daglig utvikling:** `.env.local-dev.example` → `.env`
+- **Playwright:** `.env.local-quality.example` → `.env.local-quality` + `npm run quality:local`
 
 ## Avhengigheter
 

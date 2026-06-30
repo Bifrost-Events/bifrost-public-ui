@@ -12,7 +12,8 @@ $renderError = function (\Throwable $e): void {
         http_response_code(500);
         header('Content-Type: text/html; charset=utf-8');
     }
-    $showErrors = ($_ENV['APP_ENV'] ?? 'production') === 'development'
+    $appEnv = strtolower((string) ($_ENV['APP_ENV'] ?? 'production'));
+    $showErrors = in_array($appEnv, ['development', 'local-dev', 'local-quality'], true)
         || ($_ENV['APP_DEBUG'] ?? 'false') === 'true'
         || isset($_GET['debug']);
     if ($showErrors) {

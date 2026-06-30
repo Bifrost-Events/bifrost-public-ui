@@ -41,6 +41,10 @@ if (is_array($user)) {
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="bifrost:cup" content="<?= $h((string) ($cupConfig['cup_id'] ?? 'default')) ?>">
+<?php if (\App\Support\Environment::robotsMode() === 'noindex'): ?>
+    <meta name="robots" content="noindex, nofollow">
+<?php endif; ?>
     <title><?= $h($title) ?> – <?= $h($displayName) ?></title>
     <style>
         :root {
@@ -447,7 +451,7 @@ if (is_array($user)) {
         }
     </style>
 </head>
-<body>
+<body data-cup-key="<?= $h((string) ($cupConfig['cup_id'] ?? 'default')) ?>" data-bifrost-env="<?= $h(\App\Support\Environment::current()) ?>">
 <?php if ($showDevBanner): ?>
 <div class="dev-config-banner" role="status">
     Cup config: <code><?= $h((string) ($configMeta['config_file'] ?? 'ukjent')) ?></code>

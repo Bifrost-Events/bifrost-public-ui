@@ -6,6 +6,7 @@ composer.phar
 .env
 .env.*
 !.env.example
+!.env.*.example
 
 # PHPUnit / testing
 .phpunit.result.cache
@@ -39,7 +40,13 @@ desktop.ini
 /build/
 /dist/
 
-# Node (frontend assets)
+# Node (frontend assets / quality)
 node_modules/
 npm-debug.log*
 yarn-error.log*
+
+# Playwright quality
+quality/reports/
+quality/screenshots/
+playwright-report/
+test-results/

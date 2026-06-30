@@ -1,0 +1,28 @@
+{
+  "name": "bifrost-public-ui-quality",
+  "private": true,
+  "description": "Playwright quality suite for Bifrost public cup UI",
+  "scripts": {
+    "quality:local": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all playwright test",
+    "quality:staging": "cross-env QUALITY_ENV=staging QUALITY_APP=all playwright test",
+    "quality:test": "cross-env QUALITY_ENV=test QUALITY_APP=all playwright test quality/tests/smoke",
+    "quality:prod-smoke": "cross-env QUALITY_ENV=production QUALITY_APP=all playwright test quality/tests/smoke",
+    "quality:screenshots": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all QUALITY_SCREENSHOTS=true playwright test",
+    "quality:report": "playwright show-report quality/reports/html",
+    "quality:install": "playwright install chromium",
+    "quality:db:status": "cross-env BIFROST_DOTENV=.env.local-quality php quality/bin/quality-db.php status",
+    "quality:db:reset": "cross-env BIFROST_DOTENV=.env.local-quality php quality/bin/quality-db.php reset",
+    "quality:db:migrate": "cross-env BIFROST_DOTENV=.env.local-quality php quality/bin/quality-db.php migrate",
+    "quality:db:seed": "cross-env BIFROST_DOTENV=.env.local-quality php quality/bin/quality-db.php seed",
+    "quality:db:prepare": "cross-env BIFROST_DOTENV=.env.local-quality php quality/bin/quality-db.php prepare"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.15.0",
+    "cross-env": "^7.0.3",
+    "js-yaml": "^4.1.0",
+    "typescript": "^5.8.3"
+  }
+}
+

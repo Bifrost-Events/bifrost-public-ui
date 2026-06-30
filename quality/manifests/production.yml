@@ -1,0 +1,15 @@
+environment: production
+description: Produksjon – kun read-only smoke
+timeouts:
+  test: 45000
+  expect: 8000
+  action: 10000
+  navigation: 20000
+screenshots:
+  onSuccess: false
+  onFailure: true
+console:
+  failOnError: true
+  failOnPageError: true
+database:
+  prepareBeforeRun: false

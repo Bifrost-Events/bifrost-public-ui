@@ -1,0 +1,28 @@
+name: Jaktfeltkarusell Namdalen
+key: namdal
+cupId: namdal-jaktfeltkarusell
+hostHeader: namdal.jaktfeltkarusell.local
+hosts:
+  local-dev: http://namdal.jaktfeltkarusell.local
+  local-quality: http://namdal.jaktfeltkarusell.local
+  test: https://test.namdal.jaktfeltkarusell.no
+  staging: https://staging.namdal.jaktfeltkarusell.no
+  production: https://namdal.jaktfeltkarusell.no
+expected:
+  titleContains: Namdal
+  visibleText:
+    - Namdal
+  cupKey: namdal-jaktfeltkarusell
+routes:
+  - path: /
+    name: Forside
+  - path: /calendar
+    name: Stevnekalender
+  - path: /results
+    name: Resultater
+  - path: /sammenlagt
+    name: Sammenlagt
+  - path: /arkiv
+    name: Arkiv
+  - path: /om
+    name: Om

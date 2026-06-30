@@ -1,0 +1,15 @@
+environment: staging
+description: Skybasert automatisk quality – resetbar database, full suite
+timeouts:
+  test: 90000
+  expect: 15000
+  action: 20000
+  navigation: 45000
+screenshots:
+  onSuccess: true
+  onFailure: true
+console:
+  failOnError: true
+  failOnPageError: true
+database:
+  prepareBeforeRun: true
