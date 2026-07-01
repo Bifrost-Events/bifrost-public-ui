@@ -72,6 +72,8 @@ curl -fsS --ipv4 --http1.1 --connect-timeout 30 --max-time 120 \
 Bruk `--ipv4` og `--http1.1` — fra GitHub Actions kan IPv6 eller HTTP/2 mot ProISP/Varnish henge eller gi `PROTOCOL_ERROR`.
 
 Forventet:
+
+```json
 {
   "status": "ok",
   "environment": "staging",
