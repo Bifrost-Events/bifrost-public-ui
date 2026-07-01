@@ -96,10 +96,12 @@ Repository secrets:
 ```yaml
 - name: Reset staging database via HTTPS deploy endpoint
   run: |
-    curl -fsS -X POST "$STAGING_RESET_URL" \
+    curl -fsS --http1.1 -X POST "$STAGING_RESET_URL" \
       -H "Authorization: Bearer $STAGING_DEPLOY_SECRET" \
       -H "Accept: application/json"
 ```
+
+Bruk `--http1.1` — ProISP/Varnish kan gi `curl: (92) HTTP/2 stream ... PROTOCOL_ERROR` med HTTP/2 fra GitHub Actions.
 
 Deretter Playwright (uten lokal `quality-db.php prepare`).
 
