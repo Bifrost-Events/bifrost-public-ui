@@ -63,14 +63,15 @@ ALLOW_STAGING_RESET=true
 ### Manuell test
 
 ```bash
-curl -fsS -X POST "https://staging.api.bifrostevents.no/deploy/reset-staging" \
+curl -fsS --ipv4 --http1.1 --connect-timeout 30 --max-time 120 \
+  -X POST "https://staging.api.bifrostevents.no/deploy/reset-staging" \
   -H "Authorization: Bearer <STAGING_DEPLOY_SECRET>" \
   -H "Accept: application/json"
 ```
 
-Forventet:
+Bruk `--ipv4` og `--http1.1` — fra GitHub Actions kan IPv6 eller HTTP/2 mot ProISP/Varnish henge eller gi `PROTOCOL_ERROR`.
 
-```json
+Forventet:
 {
   "status": "ok",
   "environment": "staging",
@@ -96,12 +97,13 @@ Repository secrets:
 ```yaml
 - name: Reset staging database via HTTPS deploy endpoint
   run: |
-    curl -fsS --http1.1 -X POST "$STAGING_RESET_URL" \
+    curl -fsS --ipv4 --http1.1 --connect-timeout 30 --max-time 120 \
+      -X POST "$STAGING_RESET_URL" \
       -H "Authorization: Bearer $STAGING_DEPLOY_SECRET" \
       -H "Accept: application/json"
 ```
 
-Bruk `--http1.1` — ProISP/Varnish kan gi `curl: (92) HTTP/2 stream ... PROTOCOL_ERROR` med HTTP/2 fra GitHub Actions.
+Bruk `--ipv4` og `--http1.1` — ProISP/Varnish kan gi treg IPv6-tilkobling eller `curl: (92) HTTP/2 … PROTOCOL_ERROR` fra GitHub Actions.
 
 Deretter Playwright (uten lokal `quality-db.php prepare`).
 

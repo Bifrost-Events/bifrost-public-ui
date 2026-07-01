@@ -91,10 +91,42 @@ jobs:
             echo "::error::Sett repository secrets STAGING_RESET_URL og STAGING_DEPLOY_SECRET"
             exit 1
           fi
+          staging_api_base="${STAGING_RESET_URL%/deploy/reset-staging}"
+          health_url="${staging_api_base}/api/health"
+          curl_staging() {
+            curl -fsS --ipv4 --http1.1 \
+              --connect-timeout 30 \
+              --max-time 120 \
+              "$@"
+          }
+          echo "Venter på staging API (${health_url}) …"
+          for attempt in $(seq 1 10); do
+            if curl_staging "$health_url"; then
+              echo "Staging API svarer (forsøk ${attempt})"
+              break
+            fi
+            if [ "$attempt" -eq 10 ]; then
+              echo "::error::Kunne ikke nå staging API på ${health_url} etter 10 forsøk (sjekk DNS/firewall mot GitHub Actions)"
+              exit 1
+            fi
+            echo "Forsøk ${attempt} feilet, venter 15s …"
+            sleep 15
+          done
           echo "Kaller staging reset-endepunkt …"
-          curl -fsS --http1.1 -X POST "${STAGING_RESET_URL}" \
-            -H "Authorization: Bearer ${STAGING_DEPLOY_SECRET}" \
-            -H "Accept: application/json"
+          for attempt in $(seq 1 5); do
+            if curl_staging -X POST "${STAGING_RESET_URL}" \
+              -H "Authorization: Bearer ${STAGING_DEPLOY_SECRET}" \
+              -H "Accept: application/json"; then
+              echo "Staging reset OK (forsøk ${attempt})"
+              break
+            fi
+            if [ "$attempt" -eq 5 ]; then
+              echo "::error::Staging reset feilet etter 5 forsøk"
+              exit 1
+            fi
+            echo "Reset forsøk ${attempt} feilet, venter 20s …"
+            sleep 20
+          done
           echo "QUALITY_SKIP_DB_PREPARE=true" >> "$GITHUB_ENV"
           echo "QUALITY_STAGING_RESET_VIA_HTTP=true" >> "$GITHUB_ENV"
 
@@ -123,7 +155,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: quality-report-${{ env.QUALITY_ENV }}-${{ env.QUALITY_APP }}
           path: |
