@@ -219,4 +219,6 @@ Produksjon (`quality:prod-smoke`) tar **ikke** suksess-skjermbilder – kun ved 
 - **Quality** (`.github/workflows/quality.yml`) – `workflow_call` + manuell `workflow_dispatch`
 - **Deploy (manual)** (`.github/workflows/deploy.yml`) – enkelt-miljø ved behov
 
-Staging/test-domener må være deployet og nåbare fra GitHub runners. CI setter `QUALITY_SKIP_DB_PREPARE=true` inntil staging-DB er tilgjengelig fra Actions (se [deploy-staging-setup.md](docs/deploy-staging-setup.md)).
+Staging/test-domener må være deployet og nåbare fra GitHub runners.
+
+**Staging CI:** `release-pipeline` kjører `quality:db:prepare` mot ProISP MySQL når repository secrets `STAGING_DB_*` er satt (se [deploy-staging-setup.md](../docs/deploy-staging-setup.md)). Sett `skip_db_prepare: 'false'` i pipeline (default for staging) eller `workflow_dispatch` med `skip_db_prepare=false`.

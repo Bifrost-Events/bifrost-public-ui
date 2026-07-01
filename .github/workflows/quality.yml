@@ -77,8 +77,49 @@ jobs:
       QUALITY_SKIP_DB_PREPARE: ${{ inputs.skip_db_prepare || github.event.inputs.skip_db_prepare || 'true' }}
 
     steps:
-      - name: Checkout
+      - name: Checkout public-ui
         uses: actions/checkout@v5
+
+      - name: Checkout bifrost-backend
+        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
+        uses: actions/checkout@v5
+        with:
+          repository: Bifrost-Events/bifrost-backend
+          path: bifrost-backend
+
+      - name: Checkout bifrost-shared
+        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
+        uses: actions/checkout@v5
+        with:
+          repository: Bifrost-Events/bifrost-shared
+          path: bifrost-shared
+          token: ${{ secrets.PAT_TOKEN }}
+
+      - name: Setup PHP
+        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer
+
+      - name: Install PHP dependencies (public-ui)
+        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
+        run: composer install --no-interaction --no-dev --optimize-autoloader
+
+      - name: Write staging env files for database prepare
+        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
+        env:
+          STAGING_DB_HOST: ${{ secrets.STAGING_DB_HOST }}
+          STAGING_DB_USER: ${{ secrets.STAGING_DB_USER }}
+          STAGING_DB_PASS: ${{ secrets.STAGING_DB_PASS }}
+          STAGING_DB_NAME: ${{ secrets.STAGING_DB_NAME }}
+        run: php quality/bin/write-ci-staging-env.php
+
+      - name: Verify staging database connectivity
+        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
+        env:
+          BIFROST_DOTENV: .env.staging
+        run: php quality/bin/quality-db.php status
 
       - name: Setup Node
         uses: actions/setup-node@v5

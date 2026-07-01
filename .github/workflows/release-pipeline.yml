@@ -85,7 +85,7 @@ jobs:
       quality_env: staging
       quality_app: all
       test_scope: full
-      skip_db_prepare: 'true'
+      skip_db_prepare: 'false'
     secrets: inherit
 
   backend-test:
