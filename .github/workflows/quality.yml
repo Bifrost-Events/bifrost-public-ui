@@ -92,7 +92,7 @@ jobs:
             exit 1
           fi
           echo "Kaller staging reset-endepunkt …"
-          curl -fsS -X POST "${STAGING_RESET_URL}" \
+          curl -fsS --http1.1 -X POST "${STAGING_RESET_URL}" \
             -H "Authorization: Bearer ${STAGING_DEPLOY_SECRET}" \
             -H "Accept: application/json"
           echo "QUALITY_SKIP_DB_PREPARE=true" >> "$GITHUB_ENV"
