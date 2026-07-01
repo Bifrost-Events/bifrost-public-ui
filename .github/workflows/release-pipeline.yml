@@ -61,11 +61,23 @@ jobs:
           fi
           gh run watch "$run_id" --repo "$BACKEND_REPO" --exit-status
 
-  deploy-public-staging:
+  wait-staging-reset:
     if: >-
       github.ref == 'refs/heads/main' ||
       (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'staging')
     needs: backend-staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for server-side staging reset (ProISP cron / trigger)
+        run: |
+          echo "Venter 90s slik at ProISP cron kan prosessere FTP staging-reset.trigger …"
+          sleep 90
+
+  deploy-public-staging:
+    if: >-
+      github.ref == 'refs/heads/main' ||
+      (github.event_name == 'workflow_dispatch' && inputs.pipeline == 'staging')
+    needs: wait-staging-reset
     uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
     with:
       ref: main
