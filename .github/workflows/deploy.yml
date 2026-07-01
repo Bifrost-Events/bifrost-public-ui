@@ -31,7 +31,7 @@ jobs:
       manifest_path: deploy-manifest.json
       checkout_submodules: false
       composer_install: true
-      environments: '["hjellum-no-bifrostevents-public-staging"]'
+      environments: '["staging_jaktfeltcup_no"]'
     secrets: inherit
 
   deploy-test:
@@ -45,7 +45,7 @@ jobs:
       manifest_path: deploy-manifest.json
       checkout_submodules: false
       composer_install: true
-      environments: '["hjellum-no-bifrostevents-public-test"]'
+      environments: '["test_jaktfeltcup_no"]'
     secrets: inherit
 
   deploy-prod:
