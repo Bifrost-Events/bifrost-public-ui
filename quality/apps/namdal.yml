@@ -6,7 +6,7 @@ hosts:
   local-dev: http://namdal.jaktfeltkarusell.local
   local-quality: http://namdal.jaktfeltkarusell.local
   test: https://test.namdal.jaktfeltkarusell.no
-  staging: https://staging.namdal.jaktfeltkarusell.no
+  staging: https://staging.jaktfeltkarusell.no
   production: https://namdal.jaktfeltkarusell.no
 expected:
   titleContains: Namdal

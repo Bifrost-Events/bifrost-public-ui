@@ -46,6 +46,8 @@ export interface EnvironmentManifest {
   database?: {
     prepareBeforeRun?: boolean;
   };
+  /** Når satt og QUALITY_APP=all: kun disse cup-nøklene kjøres */
+  apps?: string[];
 }
 
 export function qualityRoot(): string {

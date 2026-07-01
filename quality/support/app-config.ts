@@ -76,6 +76,7 @@ export function getEnvironmentManifest(): EnvironmentManifest {
 export function getSelectedApps(): ResolvedApp[] {
   const envName = (process.env.QUALITY_ENV ?? 'local-quality').toLowerCase();
   const appFilter = (process.env.QUALITY_APP ?? 'all').toLowerCase();
+  const envManifest = loadEnvironmentManifest(envName);
   const manifestFiles = loadAllAppManifests();
 
   const resolved = manifestFiles
@@ -86,12 +87,18 @@ export function getSelectedApps(): ResolvedApp[] {
     .filter((app): app is ResolvedApp => app !== null);
 
   if (appFilter === 'all') {
-    if (resolved.length === 0) {
+    const envApps = envManifest.apps;
+    const filtered =
+      envApps && envApps.length > 0
+        ? resolved.filter((app) => envApps.includes(app.key))
+        : resolved;
+    if (filtered.length === 0) {
       throw new Error(
-        `No apps have hosts configured for QUALITY_ENV="${envName}"`,
+        `No apps have hosts configured for QUALITY_ENV="${envName}"` +
+          (envApps?.length ? ` (manifest apps: ${envApps.join(', ')})` : ''),
       );
     }
-    return resolved;
+    return filtered;
   }
 
   const selected = resolved.filter((app) => app.key === appFilter);

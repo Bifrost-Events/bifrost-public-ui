@@ -25,6 +25,7 @@ final class CupConfigLoader
         // Staging (automatisk quality)
         'staging.slatlemcup.no' => 'slatlem-cup.json',
         'staging.jaktfeltcup.no' => 'nasjonal-15m-jaktfeltcup.json',
+        'staging.jaktfeltkarusell.no' => 'namdal-jaktfeltkarusell.json',
         'staging.namdal.jaktfeltkarusell.no' => 'namdal-jaktfeltkarusell.json',
         // Produksjon
         'slatlemcup.no' => 'slatlem-cup.json',

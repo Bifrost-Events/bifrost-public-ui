@@ -1,5 +1,9 @@
 environment: staging
 description: Skybasert automatisk quality – resetbar database, full suite
+# Kun cups med DNS + deploy på r1465167 (slatlem staging kommer senere)
+apps:
+  - jaktfeltcup
+  - namdal
 timeouts:
   test: 90000
   expect: 15000
