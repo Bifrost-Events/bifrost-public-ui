@@ -53,20 +53,17 @@ php scripts/sync-github-secrets.php Bifrost-Events/bifrost-backend
 php scripts/sync-github-secrets.php Bifrost-Events/bifrost-public-ui
 ```
 
-## 7. GitHub Secrets for staging database prepare (CI)
+## 7. GitHub Secrets for staging reset (CI)
 
-Quality resetter og seeder `bifrost_quality_staging` fra GitHub Actions før staging-tester. Legg inn **repository secrets** i `bifrost-public-ui`:
+Quality nullstiller staging-DB via **HTTPS** – ikke direkte MySQL fra Actions. Se [staging-playwright.md](staging-playwright.md).
 
 | Secret | Innhold |
 |--------|---------|
-| `STAGING_DB_HOST` | ProISP MySQL-host (fra kontrollpanel – ofte ikke `127.0.0.1` fra utsiden) |
-| `STAGING_DB_USER` | Databasebruker med DROP/CREATE/INSERT på staging-DB |
-| `STAGING_DB_PASS` | Passord |
-| `STAGING_DB_NAME` | Valgfri (default `bifrost_quality_staging`) |
+| `STAGING_RESET_URL` | `https://staging.api.bifrostevents.no/deploy/reset-staging` |
+| `STAGING_DEPLOY_SECRET` | Samme som `STAGING_DEPLOY_SECRET` i backend `.env` på server |
+| `PLAYWRIGHT_BASE_URL` | Valgfri override (standard: hosts fra `quality/apps/*.yml`) |
 
-ProISP må tillate **remote MySQL** fra GitHub Actions (eller bruk tillatt IP-range / `%`-host for quality-brukeren). Uten dette feiler `quality:db:prepare` i CI.
-
-`PAT_TOKEN` må også finnes (for checkout av privat `bifrost-shared`).
+På staging-server: sett `STAGING_DEPLOY_SECRET`, `QUALITY_RESET_DATABASE=true`, `QUALITY_SEED_DATABASE=true` i backend `.env`.
 
 ## 8. Verifiser manuelt
 

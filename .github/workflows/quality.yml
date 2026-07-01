@@ -18,7 +18,7 @@ on:
         default: full
         type: string
       skip_db_prepare:
-        description: Hopp over database prepare (CI default true)
+        description: Hopp over staging-reset før tester (CI default true)
         required: false
         default: 'true'
         type: string
@@ -53,7 +53,7 @@ on:
           - full
           - smoke
       skip_db_prepare:
-        description: Hopp over database prepare
+        description: Hopp over staging-reset før tester
         required: false
         default: 'true'
         type: choice
@@ -80,46 +80,22 @@ jobs:
       - name: Checkout public-ui
         uses: actions/checkout@v5
 
-      - name: Checkout bifrost-backend
-        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
-        uses: actions/checkout@v5
-        with:
-          repository: Bifrost-Events/bifrost-backend
-          path: bifrost-backend
-
-      - name: Checkout bifrost-shared
-        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
-        uses: actions/checkout@v5
-        with:
-          repository: Bifrost-Events/bifrost-shared
-          path: bifrost-shared
-          token: ${{ secrets.PAT_TOKEN }}
-
-      - name: Setup PHP
-        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          tools: composer
-
-      - name: Install PHP dependencies (public-ui)
-        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
-        run: composer install --no-interaction --no-dev --optimize-autoloader
-
-      - name: Write staging env files for database prepare
+      - name: Reset staging database via HTTPS deploy endpoint
         if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
         env:
-          STAGING_DB_HOST: ${{ secrets.STAGING_DB_HOST }}
-          STAGING_DB_USER: ${{ secrets.STAGING_DB_USER }}
-          STAGING_DB_PASS: ${{ secrets.STAGING_DB_PASS }}
-          STAGING_DB_NAME: ${{ secrets.STAGING_DB_NAME }}
-        run: php quality/bin/write-ci-staging-env.php
-
-      - name: Verify staging database connectivity
-        if: env.QUALITY_SKIP_DB_PREPARE != 'true' && env.QUALITY_ENV == 'staging'
-        env:
-          BIFROST_DOTENV: .env.staging
-        run: php quality/bin/quality-db.php status
+          STAGING_RESET_URL: ${{ secrets.STAGING_RESET_URL }}
+          STAGING_DEPLOY_SECRET: ${{ secrets.STAGING_DEPLOY_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${STAGING_RESET_URL:-}" ] || [ -z "${STAGING_DEPLOY_SECRET:-}" ]; then
+            echo "::error::Sett repository secrets STAGING_RESET_URL og STAGING_DEPLOY_SECRET"
+            exit 1
+          fi
+          echo "Kaller staging reset-endepunkt …"
+          curl -fsS -X POST "${STAGING_RESET_URL}" \
+            -H "Authorization: Bearer ${STAGING_DEPLOY_SECRET}" \
+            -H "Accept: application/json"
+          echo "QUALITY_SKIP_DB_PREPARE=true" >> "$GITHUB_ENV"
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -134,6 +110,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run quality tests
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ secrets.PLAYWRIGHT_BASE_URL }}
         run: |
           SCOPE="${{ inputs.test_scope || github.event.inputs.test_scope || 'full' }}"
           if [ "$SCOPE" = "smoke" ] || [ "$QUALITY_ENV" = "production" ]; then

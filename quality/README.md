@@ -221,4 +221,4 @@ Produksjon (`quality:prod-smoke`) tar **ikke** suksess-skjermbilder – kun ved 
 
 Staging/test-domener må være deployet og nåbare fra GitHub runners.
 
-**Staging CI:** `release-pipeline` kjører `quality:db:prepare` mot ProISP MySQL når repository secrets `STAGING_DB_*` er satt (se [deploy-staging-setup.md](../docs/deploy-staging-setup.md)). Sett `skip_db_prepare: 'false'` i pipeline (default for staging) eller `workflow_dispatch` med `skip_db_prepare=false`.
+**Staging CI:** `release-pipeline` kaller `POST /deploy/reset-staging` på staging API før Playwright (se [docs/staging-playwright.md](../docs/staging-playwright.md)). Secrets: `STAGING_RESET_URL`, `STAGING_DEPLOY_SECRET`.
