@@ -22,7 +22,7 @@ on:
 jobs:
   deploy-staging:
     if: inputs.target == 'staging'
-    uses: sjurivar/ci-templates/.github/workflows/deploy-admin-ftp-github-secrets.yml@v7
+    uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
     permissions:
       contents: read
       deployments: write
@@ -36,7 +36,7 @@ jobs:
 
   deploy-test:
     if: inputs.target == 'test'
-    uses: sjurivar/ci-templates/.github/workflows/deploy-admin-ftp-github-secrets.yml@v7
+    uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
     permissions:
       contents: read
       deployments: write
@@ -50,7 +50,7 @@ jobs:
 
   deploy-prod:
     if: inputs.target == 'prod'
-    uses: sjurivar/ci-templates/.github/workflows/deploy-admin-ftp-github-secrets.yml@v7
+    uses: ./.github/workflows/deploy-admin-ftp-github-secrets.yml
     permissions:
       contents: read
       deployments: write
