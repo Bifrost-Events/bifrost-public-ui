@@ -96,6 +96,7 @@ jobs:
             -H "Authorization: Bearer ${STAGING_DEPLOY_SECRET}" \
             -H "Accept: application/json"
           echo "QUALITY_SKIP_DB_PREPARE=true" >> "$GITHUB_ENV"
+          echo "QUALITY_STAGING_RESET_VIA_HTTP=true" >> "$GITHUB_ENV"
 
       - name: Setup Node
         uses: actions/setup-node@v5
