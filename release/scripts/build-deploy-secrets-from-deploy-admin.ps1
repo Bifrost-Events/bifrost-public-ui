@@ -55,7 +55,7 @@ function New-EnvYaml([string]$EnvName, [hashtable]$Vars, [string]$Comment) {
         $out += "        # $Comment"
     }
     $out += '        vars:'
-    foreach ($key in @('FTP_HOST', 'FTP_USERNAME', 'FTP_PATH', 'FTP_PORT', 'APP_URL')) {
+    foreach ($key in @('FTP_HOST', 'FTP_USERNAME', 'FTP_PATH', 'FTP_PROTOCOL', 'FTP_PORT', 'APP_URL')) {
         $out += "          ${key}: $($Vars[$key])"
     }
     $out += '        secrets:'
@@ -82,6 +82,7 @@ $lines += New-EnvYaml 'test' @{
     FTP_USERNAME = $bifrost.ftp.username
     FTP_PATH = Build-FtpPath $bifrost.webroot_base 'r1465208' 'bifrostbackend/'
     FTP_PORT = '"21"'
+    FTP_PROTOCOL = 'ftp'
     APP_URL = 'https://test.api.bifrostevents.no'
 } 'deploy_data: stage=test, r1465208'
 
@@ -90,6 +91,7 @@ $lines += New-EnvYaml 'production' @{
     FTP_USERNAME = $bifrost.ftp.username
     FTP_PATH = Build-FtpPath $bifrost.webroot_base 'r1464762' 'bifrostbackend/'
     FTP_PORT = '"21"'
+    FTP_PROTOCOL = 'ftp'
     APP_URL = 'https://api.bifrostevents.no'
 } 'deploy_data: stage=prod, r1464762'
 
@@ -99,15 +101,17 @@ $lines += New-EnvYaml 'test' @{
     FTP_HOST = $jaktfeltkarusell.ftp.host
     FTP_USERNAME = $jaktfeltkarusell.ftp.username
     FTP_PATH = Build-FtpPath $jaktfeltkarusell.webroot_base 'r1439642' 'bifrostpublicui/'
-    FTP_PORT = '"21"'
+    FTP_PROTOCOL = 'sftp'
+    FTP_PORT = '"22"'
     APP_URL = 'https://test.jaktfeltcup.no'
-} 'deploy_data: test r1439642 (jaktfeltkarusell-konto)'
+} 'deploy_data: test r1439642 (jaktfeltkarusell SFTP)'
 
 $lines += New-EnvYaml 'production' @{
     FTP_HOST = $jaktfeltcup.ftp.host
     FTP_USERNAME = $jaktfeltcup.ftp.username
     FTP_PATH = Build-FtpPath $jaktfeltcup.webroot_base 'r1415789' 'bifrostpublicui/'
     FTP_PORT = '"21"'
+    FTP_PROTOCOL = 'ftp'
     APP_URL = 'https://jaktfeltcup.no'
 } 'forventet jaktfeltcup prod r1415789 - verifiser i Deploy-Admin'
 
@@ -118,6 +122,7 @@ $lines += New-EnvYaml 'test' @{
     FTP_USERNAME = $bifrost.ftp.username
     FTP_PATH = '/customers/d/9/c/csj1wp95j/webroots/PLACEHOLDER_TEST_ADMIN/bifrostadminui/'
     FTP_PORT = '"21"'
+    FTP_PROTOCOL = 'ftp'
     APP_URL = 'https://test.admin.bifrostevents.no'
 } 'MANGLER i Deploy-Admin - oppdater PLACEHOLDER'
 
@@ -126,6 +131,7 @@ $lines += New-EnvYaml 'production' @{
     FTP_USERNAME = $bifrost.ftp.username
     FTP_PATH = Build-FtpPath $bifrost.webroot_base 'r1464744' 'bifrostadminui/'
     FTP_PORT = '"21"'
+    FTP_PROTOCOL = 'ftp'
     APP_URL = 'https://admin.bifrostevents.no'
 } 'deploy_data: r1464744'
 
@@ -136,6 +142,7 @@ $lines += New-EnvYaml 'production' @{
     FTP_USERNAME = $bifrost.ftp.username
     FTP_PATH = Build-FtpPath $bifrost.webroot_base 'r1464777' 'bifrosthomepage/'
     FTP_PORT = '"21"'
+    FTP_PROTOCOL = 'ftp'
     APP_URL = 'https://bifrostevents.no'
 } 'deploy_data: sjurivar/bifrost-homepage r1464777'
 
