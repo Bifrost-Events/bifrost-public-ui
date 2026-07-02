@@ -22,7 +22,12 @@ foreach ($prop in $reposConfig.repositories.PSObject.Properties) {
     $key = $prop.Name
     $cfg = $prop.Value
     $repoPath = Resolve-RepoPath -LocalPath $cfg.localPath
-    $git = Get-RepoGitInfo -RepoPath $repoPath
+    $excludeDirty = @()
+    if ($cfg.localPath -eq '.' -or [string]::IsNullOrWhiteSpace($cfg.localPath)) {
+        # Manifestfiler i release/releases/ er kvittering, ikke kildekode-endringer.
+        $excludeDirty = @('release/releases')
+    }
+    $git = Get-RepoGitInfo -RepoPath $repoPath -ExcludeDirtyPaths $excludeDirty
 
     if ($git.Dirty) {
         $warnings += "[!] $key ($($cfg.repo)) har ulagrede endringer i $repoPath"

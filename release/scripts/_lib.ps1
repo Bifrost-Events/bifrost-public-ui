@@ -66,7 +66,10 @@ function Resolve-RepoPath {
 }
 
 function Get-RepoGitInfo {
-    param([string]$RepoPath)
+    param(
+        [string]$RepoPath,
+        [string[]]$ExcludeDirtyPaths = @()
+    )
 
     if (-not (Test-Path (Join-Path $RepoPath '.git'))) {
         throw "Ikke et git-repo: $RepoPath"
@@ -79,7 +82,26 @@ function Get-RepoGitInfo {
         $short = (git rev-parse --short HEAD 2>$null).Trim()
         $dirty = $false
         $status = git status --porcelain 2>$null
-        if ($status) { $dirty = $true }
+        if ($status) {
+            foreach ($line in ($status -split "`n")) {
+                $line = $line.TrimEnd()
+                if (-not $line) { continue }
+
+                $path = $line.Substring(3).Trim().Replace('\', '/')
+                $skip = $false
+                foreach ($prefix in $ExcludeDirtyPaths) {
+                    $normalized = $prefix.Trim().TrimEnd('/').Replace('\', '/')
+                    if ($path -eq $normalized -or $path -like "$normalized/*") {
+                        $skip = $true
+                        break
+                    }
+                }
+                if (-not $skip) {
+                    $dirty = $true
+                    break
+                }
+            }
+        }
 
         return [PSCustomObject]@{
             Branch = $branch

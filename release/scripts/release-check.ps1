@@ -35,7 +35,11 @@ foreach ($prop in $manifest.repositories.PSObject.Properties) {
     }
 
     $repoPath = Resolve-RepoPath -LocalPath $cfg.localPath
-    $git = Get-RepoGitInfo -RepoPath $repoPath
+    $excludeDirty = @()
+    if ($cfg.localPath -eq '.' -or [string]::IsNullOrWhiteSpace($cfg.localPath)) {
+        $excludeDirty = @('release/releases')
+    }
+    $git = Get-RepoGitInfo -RepoPath $repoPath -ExcludeDirtyPaths $excludeDirty
     $match = $git.Commit -eq $entry.commit
     if (-not $match) { $allMatch = $false }
 

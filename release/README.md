@@ -111,6 +111,23 @@ npm run quality:local
 
 Krever `gh auth login` med repo/admin-tilgang til **Bifrost-Events/** og **sjurivar/bifrost-homepage**.
 
+## Manifest som kvittering (git)
+
+Release-manifester under `release/releases/<id>/manifest.json` **committes til git** som sporbar kvittering:
+
+- hvilke commits som inngikk i releasen
+- hvem som godkjente quality og test
+- status for deploy og smoke
+
+Etter viktige steg, commit manifestet i `bifrost-public-ui`:
+
+```powershell
+git add release/releases/<release-id>/
+git commit -m "release: <id> quality godkjent"
+```
+
+Manifestfiler telles ikke som «ulagrede kildekode-endringer» i `release:create` / `release:check`.
+
 ## GitHub Actions
 
 Workflow per repo: `.github/workflows/deploy-release.yml`
