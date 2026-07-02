@@ -53,3 +53,7 @@ test-results/
 
 # Release secrets (local only)
 release/config/deploy-secrets.local.yml
+
+# Release manifests (local runtime, not versioned)
+release/releases/*/
+!release/releases/.gitkeep

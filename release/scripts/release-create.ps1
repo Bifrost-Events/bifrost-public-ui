@@ -25,7 +25,7 @@ foreach ($prop in $reposConfig.repositories.PSObject.Properties) {
     $git = Get-RepoGitInfo -RepoPath $repoPath
 
     if ($git.Dirty) {
-        $warnings += "⚠ $key ($($cfg.repo)) har ulagrede endringer i $repoPath"
+        $warnings += "[!] $key ($($cfg.repo)) har ulagrede endringer i $repoPath"
     }
 
     $trackOnly = $false
@@ -61,7 +61,7 @@ Write-Host ""
 Write-Host "Repos:"
 foreach ($key in $repositories.Keys) {
     $r = $repositories[$key]
-    $icon = if ($r.dirty) { '⚠' } else { '✅' }
+    $icon = if ($r.dirty) { '[!]' } else { '[OK]' }
     $track = if ($r.trackOnly -eq $true) { ' (track-only)' } else { '' }
     Write-Host "  $icon $key $($r.shortCommit)$track"
 }
@@ -77,4 +77,4 @@ if ($warnings.Count -gt 0) {
 Write-Host ""
 Write-Host "Neste steg:"
 Write-Host "  npm run release:check -- -ReleaseId $ReleaseId"
-Write-Host "  npm run quality:local   # lokal quality før test-deploy"
+Write-Host "  npm run quality:local   # lokal quality for test-deploy"

@@ -15,7 +15,7 @@ $ok = $true
 function Test-Check {
     param([bool]$Passed, [string]$Message)
     script:ok = script:ok -and $Passed
-    $icon = if ($Passed) { '✅' } else { '❌' }
+    $icon = if ($Passed) { '[OK]' } else { '[X]' }
     Write-Host "  $icon $Message"
 }
 
@@ -23,7 +23,7 @@ Write-Host ""
 Write-Host "Release E2E forutsetninger" -ForegroundColor Cyan
 Write-Host ""
 
-Write-Host "Verktøy:"
+Write-Host "Verktoy:"
 try {
     Assert-GhCli
     Test-Check -Passed $true -Message 'gh CLI autentisert'
@@ -45,7 +45,7 @@ foreach ($prop in $reposConfig.repositories.PSObject.Properties) {
     $cfg = $prop.Value
     $path = Resolve-RepoPath -LocalPath $cfg.localPath
     $exists = Test-Path (Join-Path $path '.git')
-    Test-Check -Passed $exists -Message "$($prop.Name) → $path"
+    Test-Check -Passed $exists -Message "$($prop.Name) -> $path"
 }
 
 Write-Host ""
@@ -71,7 +71,7 @@ if ($ReleaseId) {
     if ($latest) {
         Test-Check -Passed $true -Message "Siste release: $latest"
     } else {
-        Test-Check -Passed $false -Message 'Ingen release opprettet ennå (kjør release:create)'
+        Test-Check -Passed $false -Message 'Ingen release opprettet enna (kjor release:create)'
     }
 }
 
@@ -81,5 +81,5 @@ if ($ok) {
     exit 0
 }
 
-Write-Host "Noen sjekker feilet. Rett opp før E2E." -ForegroundColor Red
+Write-Host "Noen sjekker feilet. Rett opp for E2E." -ForegroundColor Red
 exit 1
