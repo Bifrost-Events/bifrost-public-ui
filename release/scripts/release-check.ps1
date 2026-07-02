@@ -39,7 +39,7 @@ foreach ($prop in $manifest.repositories.PSObject.Properties) {
     $match = $git.Commit -eq $entry.commit
     if (-not $match) { $allMatch = $false }
 
-    $icon = if ($match) { '✅' } else { '⚠' }
+    $icon = if ($match) { '[OK]' } else { '[!]' }
     $track = if ($isTrackOnly) { ' (track-only)' } else { '' }
     $localNote = if (-not $match) { " (lokal: $($git.ShortCommit))" } else { '' }
     Write-Host "  $icon $key $($entry.shortCommit)$track$localNote"
@@ -47,8 +47,8 @@ foreach ($prop in $manifest.repositories.PSObject.Properties) {
 
 if (-not $allMatch) {
     Write-Host ""
-    Write-Host "⚠ Lokale commits avviker fra manifest." -ForegroundColor Yellow
-    Write-Host "  Kjør release:create på nytt hvis du vil oppdatere release-settet."
+    Write-Host "[!] Lokale commits avviker fra manifest." -ForegroundColor Yellow
+    Write-Host "  Kjor release:create pa nytt hvis du vil oppdatere release-settet."
 }
 
 Write-Host ""
@@ -99,11 +99,11 @@ Write-Host ""
 Write-Host "Neste steg:" -ForegroundColor Cyan
 
 if (-not $qualityOk) {
-    Write-Host "  Kjør lokal quality (public-ui + admin + arrangør mot samme backend):"
+    Write-Host "  Kjor lokal quality (public-ui + admin + arrangor mot samme backend):"
     Write-Host "    $qualityCmd"
     Write-Host ""
     Write-Host "  Krever Apache/vhosts: jaktfeltcup.local, admin.bifrost.local"
-    Write-Host "  (arrangor.bifrost.local når portalen er klar – ellers hoppes den over)"
+    Write-Host "  (arrangor.bifrost.local nar portalen er klar - ellers hoppes den over)"
     Write-Host ""
     Write-Host "  Deretter godkjenn:"
     Write-Host "    npm run release:approve -- -ReleaseId $ReleaseId -Type quality -By `"<navn>`" -Reason `"Playwright platform OK`""
@@ -116,7 +116,7 @@ if ($st.testDeploy.state -ne 'ok') {
 }
 
 if ($st.testSmoke.state -ne 'ok') {
-    Write-Host "  Vent på test smoke i GitHub Actions, deretter:"
+    Write-Host "  Vent pa test smoke i GitHub Actions, deretter:"
     Write-Host "    npm run release:mark-smoke -- -ReleaseId $ReleaseId -Environment test"
     exit 0
 }
@@ -133,9 +133,9 @@ if ($st.productionDeploy.state -ne 'ok') {
 }
 
 if ($st.productionSmoke.state -ne 'ok') {
-    Write-Host "  Vent på production smoke i GitHub Actions, deretter:"
+    Write-Host "  Vent pa production smoke i GitHub Actions, deretter:"
     Write-Host "    npm run release:mark-smoke -- -ReleaseId $ReleaseId -Environment production"
     exit 0
 }
 
-Write-Host "  Release-flyt fullført for $ReleaseId." -ForegroundColor Green
+Write-Host "  Release-flyt fullfort for $ReleaseId." -ForegroundColor Green

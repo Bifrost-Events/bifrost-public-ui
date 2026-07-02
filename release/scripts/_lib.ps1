@@ -196,12 +196,12 @@ function Format-StatusIcon {
     param([string]$State)
 
     switch ($State) {
-        'ok' { return '✅' }
-        'approved' { return '✅' }
-        'pending' { return '⏸' }
-        'failed' { return '❌' }
-        'blocked' { return '⛔' }
-        default { return '❓' }
+        'ok' { return '[OK]' }
+        'approved' { return '[OK]' }
+        'pending' { return '[..]' }
+        'failed' { return '[X]' }
+        'blocked' { return '[!]' }
+        default { return '[?]' }
     }
 }
 
