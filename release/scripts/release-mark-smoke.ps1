@@ -2,10 +2,11 @@
 # Marker smoke som OK etter vellykket GitHub Actions smoke (eller manuell verifisering).
 
 param(
-    [Parameter(Mandatory)][string]$ReleaseId,
-    [Parameter(Mandatory)]
+    [Parameter(Mandatory, Position = 0)]
     [ValidateSet('test', 'production')]
-    [string]$Environment
+    [string]$Environment,
+    [Parameter(Position = 1)]
+    [string]$ReleaseId
 )
 
 Set-StrictMode -Version Latest
@@ -15,6 +16,7 @@ $ErrorActionPreference = 'Stop'
 
 $loaded = Load-Manifest -ReleaseId $ReleaseId
 $manifest = $loaded.Data
+$ReleaseId = $loaded.ReleaseId
 $now = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
 
 switch ($Environment) {

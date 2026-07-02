@@ -2,10 +2,11 @@
 # Valider gates og trigge deploy-release workflow i hvert repo.
 
 param(
-    [Parameter(Mandatory)][string]$ReleaseId,
-    [Parameter(Mandatory)]
+    [Parameter(Mandatory, Position = 0)]
     [ValidateSet('test', 'production')]
-    [string]$Environment
+    [string]$Environment,
+    [Parameter(Position = 1)]
+    [string]$ReleaseId
 )
 
 Set-StrictMode -Version Latest
@@ -17,8 +18,11 @@ Assert-GhCli
 
 $loaded = Load-Manifest -ReleaseId $ReleaseId
 $manifest = $loaded.Data
+$ReleaseId = $loaded.ReleaseId
 $reposConfig = Get-ReposConfig
 $envConfig = Get-EnvironmentsConfig
+
+Assert-ManifestPublishedToGit -ReleaseId $ReleaseId
 
 switch ($Environment) {
     'test' {
@@ -94,7 +98,7 @@ Write-Host ""
 Write-Host "Deploy trigget. Folg med i GitHub Actions." -ForegroundColor Green
 Write-Host ""
 Write-Host "Etter smoke er OK, oppdater manifest:"
-Write-Host "  npm run release:mark-smoke -- -ReleaseId $ReleaseId -Environment $Environment"
+Write-Host "  npm run release:mark-smoke -- $Environment"
 Write-Host ""
 Write-Host "Eller sjekk status:"
-Write-Host "  npm run release:check -- -ReleaseId $ReleaseId"
+Write-Host "  npm run release:check"

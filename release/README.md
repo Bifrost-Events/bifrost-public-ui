@@ -128,6 +128,8 @@ git commit -m "release: <id> quality godkjent"
 
 Manifestfiler telles ikke som «ulagrede kildekode-endringer» i `release:create` / `release:check`.
 
+`release:deploy` **stopper** hvis manifestet ikke er committet og pushet til `origin` — deploy leser gates lokalt, men kvitteringen skal ligge på GitHub før sky-deploy starter.
+
 ## GitHub Actions
 
 Workflow per repo: `.github/workflows/deploy-release.yml`

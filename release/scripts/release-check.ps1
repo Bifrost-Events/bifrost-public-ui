@@ -96,6 +96,13 @@ $prodAllowed = $testOk -and
     $st.testDeploy.state -eq 'ok' -and
     $st.testSmoke.state -eq 'ok'
 
+$manifestPublish = Get-ManifestGitPublishState -ReleaseId $ReleaseId
+if ($manifestPublish.Published) {
+    Write-Host "  $(Format-StatusIcon 'ok') manifest publisert ($($manifestPublish.Detail))"
+} else {
+    Write-Host "  $(Format-StatusIcon 'failed') manifest ikke pa GitHub ($($manifestPublish.Detail))"
+}
+
 Write-StatusLine -Label 'production deploy' -State $(if ($prodAllowed) { $st.productionDeploy.state } else { 'blocked' }) -FailLabel 'production ikke tillatt'
 Write-StatusLine -Label 'production smoke' -State $(if ($prodAllowed) { $st.productionSmoke.state } else { 'blocked' }) -FailLabel 'production smoke ikke tillatt'
 
@@ -115,7 +122,14 @@ if (-not $qualityOk) {
 }
 
 if ($st.testDeploy.state -ne 'ok') {
-    Write-Host "  npm run release:deploy -- -ReleaseId $ReleaseId -Environment test"
+    if (-not $manifestPublish.Published) {
+        Write-Host "  Commit og push manifest forst:"
+        Write-Host "    git add release/releases/$ReleaseId/"
+        Write-Host "    git commit -m `"release: $ReleaseId`""
+        Write-Host "    git push"
+    } else {
+        Write-Host "  npm run release:deploy -- test"
+    }
     exit 0
 }
 
@@ -132,7 +146,11 @@ if (-not $testOk) {
 }
 
 if ($st.productionDeploy.state -ne 'ok') {
-    Write-Host "  npm run release:deploy -- -ReleaseId $ReleaseId -Environment production"
+    if (-not $manifestPublish.Published) {
+        Write-Host "  Commit og push manifest forst (inkl. test deploy/smoke-status)."
+    } else {
+        Write-Host "  npm run release:deploy -- production"
+    }
     exit 0
 }
 

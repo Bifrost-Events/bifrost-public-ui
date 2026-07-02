@@ -56,5 +56,10 @@ Write-Host ""
 Write-Host "Godkjenning lagret: $Type" -ForegroundColor Green
 Write-Host "Manifest: $path"
 Write-Host ""
+Write-Host "Commit og push manifest til GitHub for deploy kan startes:" -ForegroundColor Yellow
+Write-Host "  git add release/releases/$ReleaseId/"
+Write-Host "  git commit -m `"release: $ReleaseId $Type godkjent`""
+Write-Host "  git push"
+Write-Host ""
 Write-Host "Neste steg:"
 & "$PSScriptRoot\release-check.ps1" -ReleaseId $ReleaseId

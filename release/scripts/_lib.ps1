@@ -170,6 +170,96 @@ function Save-Manifest {
     return $path
 }
 
+function Get-ManifestGitPublishState {
+    param([Parameter(Mandatory)][string]$ReleaseId)
+
+    $publicUiRoot = (Get-PublicUiRoot).Path
+    $relPath = "release/releases/$ReleaseId/manifest.json".Replace('\', '/')
+
+    Push-Location $publicUiRoot
+    try {
+        if (-not (Test-Path $relPath)) {
+            return [PSCustomObject]@{
+                Published = $false
+                Detail = "Manifest finnes ikke: $relPath"
+            }
+        }
+
+        $tracked = @(git ls-files -- $relPath 2>$null)
+        if ($tracked.Count -eq 0) {
+            return [PSCustomObject]@{
+                Published = $false
+                Detail = 'Manifest er ikke committet (git add + git commit).'
+            }
+        }
+
+        git diff --quiet HEAD -- $relPath
+        if ($LASTEXITCODE -ne 0) {
+            return [PSCustomObject]@{
+                Published = $false
+                Detail = 'Manifest har ulagrede endringer. Commit for deploy.'
+            }
+        }
+
+        $branch = (git rev-parse --abbrev-ref HEAD 2>$null).Trim()
+        $remote = 'origin'
+        git fetch $remote $branch 2>&1 | Out-Null
+        $upstream = "$remote/$branch"
+
+        git rev-parse --verify $upstream 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            return [PSCustomObject]@{
+                Published = $false
+                Detail = "Fant ikke $upstream. Push manifest til GitHub forst."
+            }
+        }
+
+        git rev-parse "${upstream}:$relPath" 2>$null | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+            return [PSCustomObject]@{
+                Published = $false
+                Detail = "Manifest finnes ikke pa $upstream. Push til GitHub for deploy."
+            }
+        }
+
+        $localBlob = (git hash-object $relPath).Trim()
+        $remoteBlob = (git rev-parse "${upstream}:$relPath").Trim()
+        if ($localBlob -ne $remoteBlob) {
+            return [PSCustomObject]@{
+                Published = $false
+                Detail = "Manifest er committet lokalt men ikke pushet til $upstream."
+            }
+        }
+
+        return [PSCustomObject]@{
+            Published = $true
+            Detail = $upstream
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Assert-ManifestPublishedToGit {
+    param([Parameter(Mandatory)][string]$ReleaseId)
+
+    $state = Get-ManifestGitPublishState -ReleaseId $ReleaseId
+    if (-not $state.Published) {
+        $relDir = "release/releases/$ReleaseId"
+        throw @"
+Deploy stoppet: release-manifest er ikke publisert til GitHub.
+$($state.Detail)
+
+  git add $relDir/
+  git commit -m "release: $ReleaseId"
+  git push
+
+Manifest ma ligge pa origin for deploy kan startes.
+"@
+    }
+}
+
 function New-ReleaseStatus {
     return [PSCustomObject]@{
         quality = [PSCustomObject]@{ state = 'pending'; updatedAt = $null }
