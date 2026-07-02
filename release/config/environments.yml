@@ -1,0 +1,58 @@
+# Staging er lokalt quality-oppsett – ingen FTP-deploy i release-flyten.
+# Se quality/README.md for .env.local-quality og npm run quality:local
+
+localQuality:
+  profile: local-quality
+  qualityCommand: npm run quality:local
+  description: Playwright mot lokalt oppsett (resetbar DB, ikke sky-staging)
+  localApps:
+    - jaktfeltcup
+    - namdal
+    - admin
+    - arrangor
+  localUrls:
+    public-ui: http://jaktfeltcup.local
+    admin-ui: http://admin.bifrost.local
+    arrangor-ui: http://arrangor.bifrost.local
+  manualVerifyNote: >-
+    quality:local kjører public-ui, admin og arrangør (arrangor hoppes over til appen er klar).
+    Alle deler samme backend – API-endringer testes på tvers.
+
+# Deploy-miljøer synket til GitHub Environments (kun test og production)
+environments:
+  test:
+    githubEnvironment: test
+    smokeRequired: true
+    manualApprovalRequired: true
+    appUrls:
+      public-ui: https://test.jaktfeltcup.no
+      backend: https://test.api.bifrostevents.no
+      admin-ui: https://test.admin.bifrostevents.no
+      arrangor-ui: https://test.arrangor.bifrostevents.no
+    ftpVars:
+      - FTP_HOST
+      - FTP_USERNAME
+      - FTP_PATH
+      - FTP_PORT
+      - APP_URL
+    ftpSecrets:
+      - FTP_PASSWORD
+
+  production:
+    githubEnvironment: production
+    smokeRequired: true
+    manualApprovalRequired: true
+    appUrls:
+      public-ui: https://jaktfeltcup.no
+      backend: https://api.bifrostevents.no
+      admin-ui: https://admin.bifrostevents.no
+      arrangor-ui: https://arrangor.bifrostevents.no
+      homepage: https://bifrostevents.no
+    ftpVars:
+      - FTP_HOST
+      - FTP_USERNAME
+      - FTP_PATH
+      - FTP_PORT
+      - APP_URL
+    ftpSecrets:
+      - FTP_PASSWORD

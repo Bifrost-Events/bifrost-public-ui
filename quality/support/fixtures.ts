@@ -57,6 +57,10 @@ export async function assertPageBasics(
     await expect(page.locator('body')).toContainText(text, { timeout: 10_000 });
   }
 
+  if (app.kind !== 'cup') {
+    return;
+  }
+
   const cupKey = app.expected.cupKey ?? app.cupId;
   if (cupKey) {
     await expect(page.locator('body')).toHaveAttribute('data-cup-key', cupKey);
@@ -64,6 +68,12 @@ export async function assertPageBasics(
       'content',
       cupKey,
     );
+  }
+}
+
+export function skipIfAppNotReady(app: QualityFixtures['app']): void {
+  if (app.skipUntilReady) {
+    test.skip(true, `${app.key} er ikke klar for quality ennå (skipUntilReady i manifest)`);
   }
 }
 

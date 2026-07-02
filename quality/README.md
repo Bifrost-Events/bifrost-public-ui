@@ -1,6 +1,8 @@
 # Bifrost Quality
 
-Playwright-basert kvalitetssikring for **bifrost-public-ui** – samme testsuite mot flere cup-domener og miljøprofiler.
+Playwright-basert kvalitetssikring for **hele Bifrost-plattformen** – public cup-UI, admin og arrangør – mot samme **bifrost-backend**.
+
+Endringer i backend API kan påvirke alle lag; `quality:local` kjører derfor smoke mot flere apper i samme suite.
 
 ## Miljøprofiler
 
@@ -52,8 +54,19 @@ Legacy: `APP_ENV=development` behandles som `local-dev`.
 Hosts-fil (typisk allerede på plass lokalt):
 
 ```
-127.0.0.1 slatlemcup.local jaktfeltcup.local namdal.jaktfeltkarusell.local
+127.0.0.1 slatlemcup.local jaktfeltcup.local namdal.jaktfeltkarusell.local admin.bifrost.local arrangor.bifrost.local
 ```
+
+### Plattform-portaler (admin / arrangør)
+
+| App | Manifest | Lokal URL | Smoke |
+|-----|----------|-----------|-------|
+| Admin | `quality/apps/admin.yml` | `admin.bifrost.local` | `/health`, `/login` |
+| Arrangør | `quality/apps/arrangor.yml` | `arrangor.bifrost.local` | Hoppes over til app er klar (`skipUntilReady`) |
+
+Admin-ui trenger egen `.env` med `BACKEND_API_URL` mot samme backend som quality (f.eks. `http://api.bifrost.local`).
+
+Cup-manifester bruker `kind: cup` (standard); admin/arrangør bruker `kind: portal` uten `cupKey`.
 
 `CupConfigLoader::HOST_MAP` støtter også forenklede alias (`slatlem.local`, `namdal.local`) om du vil bruke dem senere.
 
@@ -215,10 +228,7 @@ Produksjon (`quality:prod-smoke`) tar **ikke** suksess-skjermbilder – kun ved 
 
 ## CI
 
-- **Release pipeline** (`.github/workflows/release-pipeline.yml`) – `main` → staging deploy → quality → test; `v*` → prod smoke
-- **Quality** (`.github/workflows/quality.yml`) – `workflow_call` + manuell `workflow_dispatch`
-- **Deploy (manual)** (`.github/workflows/deploy.yml`) – enkelt-miljø ved behov
+- **Deploy release** (`.github/workflows/deploy-release.yml`) – kun `workflow_dispatch` via `npm run release:deploy`
+- **Quality** (`.github/workflows/quality.yml`) – manuell `workflow_dispatch` mot test/staging/production ved behov
 
-Staging/test-domener må være deployet og nåbare fra GitHub runners.
-
-**Staging CI:** `release-pipeline` kaller `POST /deploy/reset-staging` på staging API før Playwright (se [docs/staging-playwright.md](../docs/staging-playwright.md)). Secrets: `STAGING_RESET_URL`, `STAGING_DEPLOY_SECRET`.
+Lokal quality (`npm run quality:local`) er standard før test-deploy. Sky-staging brukes ikke i release-flyten.

@@ -1,10 +1,12 @@
 # Staging Playwright – database reset
 
+> **Historisk:** Denne flyten ble brukt av `release-pipeline.yml` (fjernet). Ny release-flyt bruker **lokal quality** (`npm run quality:local`) – se [release/README.md](../release/README.md).
+
 Automatiske Playwright-tester mot sky-staging trenger fersk database. GitHub Actions har **ikke** direkte MySQL-tilgang, og **HTTPS fra GitHub til ProISP er ustabilt** (timeout / HTTP/2-feil).
 
 Løsningen er **FTP-trigger ved backend-deploy** + **server-side prosessering** (ProISP cron).
 
-## Flyt (release-pipeline)
+## Flyt (legacy release-pipeline – fjernet)
 
 ```
 main push

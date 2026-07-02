@@ -8,9 +8,9 @@ import {
 } from '../../support/fixtures';
 import { expectsSeededDatabase } from '../../support/app-config';
 
-test.describe('Smoke – routes @smoke', () => {
+test.describe('Smoke – portal @smoke', () => {
   test.beforeEach(({ app }) => {
-    test.skip(app.kind !== 'cup', 'Kun for public cup-UI');
+    test.skip(app.kind !== 'portal', 'Kun for admin/arrangør-portaler');
     skipIfAppNotReady(app);
   });
 
@@ -25,21 +25,20 @@ test.describe('Smoke – routes @smoke', () => {
 
     const status = response?.status() ?? 0;
     if (expectsSeededDatabase()) {
-      expect(status, 'Health skal være 200 når database er seedet').toBe(200);
+      expect(status, 'Health skal være 200 når backend er tilgjengelig').toBe(200);
     } else {
       expect([200, 503]).toContain(status);
     }
 
+    const marker = app.expected.healthMarker ?? app.key;
     const body = await page.locator('body').textContent();
-    const marker = app.expected.healthMarker ?? 'public_ui';
     expect(body ?? '').toContain(marker);
 
     await maybeCaptureScreenshot(page, app, envManifest.environment, 'health', testInfo);
-
     consoleCollector.assertClean();
   });
 
-  test('all manifest routes load', async ({
+  test('public routes load without server error', async ({
     page,
     app,
     envManifest,
@@ -59,19 +58,13 @@ test.describe('Smoke – routes @smoke', () => {
 
         await assertPageBasics(page, app, route.name);
 
-        const saved = await maybeCaptureScreenshot(
+        await maybeCaptureScreenshot(
           page,
           app,
           envManifest.environment,
           route.name,
           testInfo,
         );
-        if (saved) {
-          testInfo.annotations.push({
-            type: 'screenshot',
-            description: saved,
-          });
-        }
       });
     }
 

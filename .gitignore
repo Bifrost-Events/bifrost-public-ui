@@ -50,3 +50,6 @@ quality/reports/
 quality/screenshots/
 playwright-report/
 test-results/
+
+# Release secrets (local only)
+release/config/deploy-secrets.local.yml

@@ -3,9 +3,15 @@ import {
   expect,
   visitRoute,
   maybeCaptureScreenshot,
+  skipIfAppNotReady,
 } from '../../support/fixtures';
 
 test.describe('Domain / cup context @domain', () => {
+  test.beforeEach(({ app }) => {
+    test.skip(app.kind !== 'cup', 'Kun for public cup-UI');
+    skipIfAppNotReady(app);
+  });
+
   test('correct cup loads for domain', async ({
     page,
     app,

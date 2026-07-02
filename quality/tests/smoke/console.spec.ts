@@ -1,6 +1,10 @@
-import { test, visitRoute } from '../../support/fixtures';
+import { test, visitRoute, skipIfAppNotReady } from '../../support/fixtures';
 
 test.describe('Console checks @console', () => {
+  test.beforeEach(({ app }) => {
+    skipIfAppNotReady(app);
+  });
+
   test('no unexpected console errors on key pages', async ({
     page,
     app,

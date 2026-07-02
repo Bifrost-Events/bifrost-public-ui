@@ -1,6 +1,6 @@
 # GitHub branch protection (anbefalt)
 
-Konfigureres manuelt i GitHub etter første vellykkede release-pipeline.
+Konfigureres manuelt i GitHub.
 
 ## Repository: `Bifrost-Events/bifrost-public-ui`
 
@@ -8,20 +8,18 @@ Konfigureres manuelt i GitHub etter første vellykkede release-pipeline.
 
 | Innstilling | Verdi |
 |-------------|--------|
-| Require status checks | `quality-staging` (fra Release pipeline) |
-| Require branches to be up to date | Valgfritt |
+| Require pull request reviews | Anbefalt |
+| Require status checks | Valgfritt (ingen auto-deploy ved push) |
 
-Valgfritt: opprett GitHub Environment **`test-promotion`** med **Required reviewers** – brukes av `backend-test`-jobben i [release-pipeline.yml](../.github/workflows/release-pipeline.yml) før deploy til test-miljø.
+Deploy til test og production skjer kun via release-flyten (`npm run release:deploy`) etter quality-godkjenning.
 
 ## Repository: `Bifrost-Events/bifrost-backend`
 
-Ingen required checks på `main` nødvendig – staging deployes ved push; quality kjører i public-ui-pipelinen.
+Ingen required checks på `main` nødvendig for deploy – push deployer ikke automatisk.
 
-## Status checks etter første kjøring
+## Release-gates (lokalt)
 
-Navn på checks matcher job-navn i workflow:
+- `release:approve quality` før test-deploy
+- `release:approve test` før production-deploy
 
-- `Release pipeline / quality-staging`
-- `Release pipeline / quality-test-smoke`
-
-Eksakt navn vises under Actions etter første run – bruk det i branch protection.
+Se [release/README.md](../release/README.md).

@@ -1,0 +1,41 @@
+repositories:
+  public-ui:
+    owner: Bifrost-Events
+    repo: bifrost-public-ui
+    localPath: .
+    workflow: deploy-release.yml
+    deployOrder: 2
+    smokeMode: public-ui
+  backend:
+    owner: Bifrost-Events
+    repo: bifrost-backend
+    localPath: ../bifrost-backend
+    workflow: deploy-release.yml
+    deployOrder: 1
+    smokeMode: backend
+  admin-ui:
+    owner: Bifrost-Events
+    repo: bifrost-admin-ui
+    localPath: ../bifrost-admin-ui
+    workflow: deploy-release.yml
+    deployOrder: 3
+    smokeMode: admin-ui
+  homepage:
+    owner: sjurivar
+    repo: bifrost-homepage
+    localPath: ../bifrost-homepage
+    workflow: deploy-release.yml
+    deployOrder: 4
+    smokeMode: homepage
+    deployEnvironments:
+      - production
+  arrangor-ui:
+    owner: Bifrost-Events
+    repo: bifrost-arrangor-ui
+    localPath: ../bifrost-arrangor-ui
+    trackOnly: true
+  shared:
+    owner: Bifrost-Events
+    repo: bifrost-shared
+    localPath: ../bifrost-shared
+    trackOnly: true

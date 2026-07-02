@@ -10,9 +10,11 @@ import {
 export interface ResolvedApp {
   key: string;
   name: string;
-  cupId: string;
+  kind: 'cup' | 'portal';
+  cupId?: string;
   baseUrl: string;
   hostHeader?: string;
+  skipUntilReady: boolean;
   expected: AppManifest['expected'];
   routes: AppManifest['routes'];
   manifestPath: string;
@@ -60,9 +62,11 @@ function resolveApp(
   return {
     key: manifest.key,
     name: manifest.name,
+    kind: manifest.kind ?? 'cup',
     cupId: manifest.cupId,
     baseUrl: normalizedBaseUrl,
     hostHeader: resolveHostHeader(normalizedBaseUrl, manifest),
+    skipUntilReady: manifest.skipUntilReady === true,
     expected: manifest.expected ?? {},
     routes: manifest.routes ?? [],
     manifestPath,

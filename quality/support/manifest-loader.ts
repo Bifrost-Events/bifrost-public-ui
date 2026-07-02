@@ -13,15 +13,21 @@ export interface AppExpected {
   titleContains?: string;
   visibleText?: string[];
   cupKey?: string;
+  /** For portal-apps: forventet streng i /health JSON (f.eks. admin_ui). */
+  healthMarker?: string;
 }
 
 export interface AppManifest {
   name: string;
   key: string;
-  cupId: string;
+  /** cup = public cup-UI; portal = admin/arrangør (ingen cupKey). */
+  kind?: 'cup' | 'portal';
+  cupId?: string;
   hosts: Record<string, string>;
   /** HTTP Host-header ved testing via localhost (f.eks. composer serve). */
   hostHeader?: string;
+  /** Hopp over tester til appen er deployet lokalt (f.eks. arrangor-ui under utvikling). */
+  skipUntilReady?: boolean;
   expected: AppExpected;
   routes: RouteManifest[];
 }
@@ -77,7 +83,11 @@ export function loadAppManifest(filePath: string): AppManifest {
   if (!manifest.key || !manifest.hosts) {
     throw new Error(`App manifest missing key or hosts: ${filePath}`);
   }
-  return manifest;
+  const kind = manifest.kind ?? (manifest.cupId ? 'cup' : 'portal');
+  if (kind === 'cup' && !manifest.cupId) {
+    throw new Error(`Cup app manifest missing cupId: ${filePath}`);
+  }
+  return { ...manifest, kind };
 }
 
 export function loadAllAppManifests(): AppManifest[] {

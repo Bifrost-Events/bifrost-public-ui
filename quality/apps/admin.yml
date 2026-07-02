@@ -1,0 +1,17 @@
+kind: portal
+name: Bifrost Admin
+key: admin
+hostHeader: admin.bifrost.local
+hosts:
+  local-dev: http://admin.bifrost.local
+  local-quality: http://admin.bifrost.local
+  test: https://test.admin.bifrostevents.no
+  production: https://admin.bifrostevents.no
+expected:
+  titleContains: Bifrost Admin
+  visibleText:
+    - Bifrost Admin
+  healthMarker: admin_ui
+routes:
+  - path: /login
+    name: Login

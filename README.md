@@ -114,8 +114,9 @@ Public-ui resolver aktiv cup fra HTTP-host via `GET /api/tenant/resolve?host=` p
 
 ## Deploy
 
-- **Release pipeline** (`.github/workflows/release-pipeline.yml`) – `main` → staging → quality → test; `v*` → prod
-- **Manuell deploy** (`.github/workflows/deploy.yml`) – `workflow_dispatch` per miljø
-- Deploy-Admin: `app_folder` = `bifrostpublicui/`, GitHub-miljøer `staging_jaktfeltcup_no` / `test_jaktfeltcup_no` (synket fra subdomener)
+- **Release-flyt** ([release/README.md](release/README.md)) – lokal quality → `release:deploy test` → `release:deploy production`
+- Workflow: `.github/workflows/deploy-release.yml` (kun `workflow_dispatch` via `npm run release:deploy`)
 
-Krever `PAT_TOKEN` repository secret for `repository_dispatch` til backend. Se [docs/deploy-staging-setup.md](docs/deploy-staging-setup.md) og [Deploy-Admin bifrost-miljøer](../../platformstandard/Deploy-Admin/docs/bifrost-deploy-environments.md).
+Synk FTP til GitHub Environments `test` og `production`: `npm run release:sync-secrets` (se `release/config/deploy-secrets.example.yml`).
+
+Push til `main` deployer ikke automatisk til test eller production.

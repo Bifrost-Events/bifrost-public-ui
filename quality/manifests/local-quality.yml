@@ -1,5 +1,10 @@
 environment: local-quality
-description: Lokal automatisk Playwright – egen resetbar database
+description: Lokal automatisk Playwright – public-ui, admin og arrangør mot samme backend
+apps:
+  - jaktfeltcup
+  - namdal
+  - admin
+  - arrangor
 timeouts:
   test: 60000
   expect: 10000

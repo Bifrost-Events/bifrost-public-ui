@@ -1,0 +1,16 @@
+kind: portal
+name: Bifrost Arrangør
+key: arrangor
+skipUntilReady: true
+hostHeader: arrangor.bifrost.local
+hosts:
+  local-dev: http://arrangor.bifrost.local
+  local-quality: http://arrangor.bifrost.local
+  test: https://test.arrangor.bifrostevents.no
+  production: https://arrangor.bifrostevents.no
+expected:
+  titleContains: Arrangør
+  healthMarker: arrangor_ui
+routes:
+  - path: /login
+    name: Login

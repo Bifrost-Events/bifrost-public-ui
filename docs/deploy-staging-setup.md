@@ -1,6 +1,8 @@
 # Server-oppsett: staging og test (ProISP / bifrostevents)
 
-Sjekkliste for sky-miljøer før release-pipeline kan kjøre quality mot live URL-er.
+> **Merk:** Ny release-flyt bruker lokal quality og deployer kun til `test` / `production` via `npm run release:deploy`. Sky-staging er ikke lenger del av CI.
+
+Sjekkliste for sky-miljøer (test/production) og historisk staging-oppsett.
 
 ## 1. ProISP webroots
 
