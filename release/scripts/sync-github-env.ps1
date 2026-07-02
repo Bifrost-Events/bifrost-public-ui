@@ -116,4 +116,4 @@ foreach ($repoProp in $config.repositories.PSObject.Properties) {
 }
 
 Write-Host ""
-Write-Host "Synk fullført." -ForegroundColor Green
+Write-Host "Synk fullfort." -ForegroundColor Green

@@ -23,7 +23,7 @@ $envConfig = Get-EnvironmentsConfig
 switch ($Environment) {
     'test' {
         if (-not (Test-QualityApproved -Manifest $manifest)) {
-            throw 'Test deploy ikke tillatt: lokal quality er ikke godkjent. Kjør quality:local og release:approve.'
+            throw 'Test deploy ikke tillatt: lokal quality er ikke godkjent. Kjor quality:local og release:approve.'
         }
     }
     'production' {
@@ -31,7 +31,7 @@ switch ($Environment) {
             throw 'Production deploy ikke tillatt: test-godkjenning mangler.'
         }
         if ($manifest.status.testDeploy.state -ne 'ok' -or $manifest.status.testSmoke.state -ne 'ok') {
-            throw 'Production deploy ikke tillatt: test deploy/smoke må være OK først.'
+            throw 'Production deploy ikke tillatt: test deploy/smoke ma vaere OK forst.'
         }
     }
 }
@@ -73,7 +73,7 @@ foreach ($item in $deployRepos) {
         throw "workflow run feilet for $fullRepo"
     }
 
-    Write-Host "  ✓ Workflow startet" -ForegroundColor Green
+    Write-Host "  OK Workflow startet" -ForegroundColor Green
 }
 
 $now = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ')
@@ -91,7 +91,7 @@ switch ($Environment) {
 Save-Manifest -ReleaseId $ReleaseId -Data $manifest | Out-Null
 
 Write-Host ""
-Write-Host "Deploy trigget. Følg med i GitHub Actions." -ForegroundColor Green
+Write-Host "Deploy trigget. Folg med i GitHub Actions." -ForegroundColor Green
 Write-Host ""
 Write-Host "Etter smoke er OK, oppdater manifest:"
 Write-Host "  npm run release:mark-smoke -- -ReleaseId $ReleaseId -Environment $Environment"

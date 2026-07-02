@@ -139,7 +139,7 @@ function Load-Manifest {
     if (-not $ReleaseId) {
         $ReleaseId = Get-LatestReleaseId
         if (-not $ReleaseId) {
-            throw 'Ingen release funnet. Kjør release:create først.'
+            throw 'Ingen release funnet. Kjor release:create forst.'
         }
     }
 
@@ -266,7 +266,7 @@ function Assert-GhCli {
 
     gh auth status 2>&1 | Out-Null
     if ($LASTEXITCODE -ne 0) {
-        throw 'Ikke autentisert med gh. Kjør: gh auth login'
+        throw 'Ikke autentisert med gh. Kjor: gh auth login'
     }
 }
 

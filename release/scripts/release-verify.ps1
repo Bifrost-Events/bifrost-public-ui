@@ -14,7 +14,7 @@ $ok = $true
 
 function Test-Check {
     param([bool]$Passed, [string]$Message)
-    script:ok = script:ok -and $Passed
+    $script:ok = $script:ok -and $Passed
     $icon = if ($Passed) { '[OK]' } else { '[X]' }
     Write-Host "  $icon $Message"
 }
