@@ -64,7 +64,7 @@
                                },
                    "testDeploy":  {
                                       "state":  "ok",
-                                      "updatedAt":  "2026-07-02T09:17:40Z"
+                                      "updatedAt":  "2026-07-02T09:42:45Z"
                                   },
                    "testSmoke":  {
                                      "state":  "pending",
