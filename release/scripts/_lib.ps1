@@ -170,6 +170,26 @@ function Save-Manifest {
     return $path
 }
 
+function Invoke-GitQuiet {
+    param(
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$GitArgs
+    )
+
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        $output = & git @GitArgs 2>&1
+        return [PSCustomObject]@{
+            ExitCode = $LASTEXITCODE
+            Output = @($output)
+        }
+    }
+    finally {
+        $ErrorActionPreference = $prev
+    }
+}
+
 function Get-ManifestGitPublishState {
     param([Parameter(Mandatory)][string]$ReleaseId)
 
@@ -185,45 +205,47 @@ function Get-ManifestGitPublishState {
             }
         }
 
-        $tracked = @(git ls-files -- $relPath 2>$null)
-        if ($tracked.Count -eq 0) {
+        $tracked = Invoke-GitQuiet ls-files -- $relPath
+        if ($tracked.Output.Count -eq 0) {
             return [PSCustomObject]@{
                 Published = $false
                 Detail = 'Manifest er ikke committet (git add + git commit).'
             }
         }
 
-        git diff --quiet HEAD -- $relPath
-        if ($LASTEXITCODE -ne 0) {
+        $diff = Invoke-GitQuiet diff --quiet HEAD -- $relPath
+        if ($diff.ExitCode -ne 0) {
             return [PSCustomObject]@{
                 Published = $false
                 Detail = 'Manifest har ulagrede endringer. Commit for deploy.'
             }
         }
 
-        $branch = (git rev-parse --abbrev-ref HEAD 2>$null).Trim()
+        $branch = (Invoke-GitQuiet rev-parse --abbrev-ref HEAD).Output | Out-String
+        $branch = $branch.Trim()
         $remote = 'origin'
-        git fetch $remote $branch 2>&1 | Out-Null
+        Invoke-GitQuiet fetch $remote $branch | Out-Null
         $upstream = "$remote/$branch"
 
-        git rev-parse --verify $upstream 2>$null | Out-Null
-        if ($LASTEXITCODE -ne 0) {
+        $verify = Invoke-GitQuiet rev-parse --verify $upstream
+        if ($verify.ExitCode -ne 0) {
             return [PSCustomObject]@{
                 Published = $false
                 Detail = "Fant ikke $upstream. Push manifest til GitHub forst."
             }
         }
 
-        git rev-parse "${upstream}:$relPath" 2>$null | Out-Null
-        if ($LASTEXITCODE -ne 0) {
+        $remotePath = Invoke-GitQuiet rev-parse "${upstream}:$relPath"
+        if ($remotePath.ExitCode -ne 0) {
             return [PSCustomObject]@{
                 Published = $false
                 Detail = "Manifest finnes ikke pa $upstream. Push til GitHub for deploy."
             }
         }
 
-        $localBlob = (git hash-object $relPath).Trim()
-        $remoteBlob = (git rev-parse "${upstream}:$relPath").Trim()
+        $localBlob = (Invoke-GitQuiet hash-object $relPath).Output | Out-String
+        $localBlob = $localBlob.Trim()
+        $remoteBlob = ($remotePath.Output | Out-String).Trim()
         if ($localBlob -ne $remoteBlob) {
             return [PSCustomObject]@{
                 Published = $false

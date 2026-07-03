@@ -1,10 +1,11 @@
 environment: local-quality
-description: Lokal automatisk Playwright – public-ui, admin og arrangør mot samme backend
+description: Lokal automatisk Playwright – smoke, domain og staging-flyter (bruker/deltaker, admin)
 apps:
   - jaktfeltcup
   - namdal
   - admin
-  - arrangor
+  - arrangor-jaktfeltcup
+  - arrangor-namdal
 timeouts:
   test: 60000
   expect: 10000
@@ -18,3 +19,5 @@ console:
   failOnPageError: true
 database:
   prepareBeforeRun: true
+  expectedBackendDatabase: bifrost_quality_local
+  dotenvFile: .env.local-quality

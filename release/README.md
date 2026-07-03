@@ -12,7 +12,7 @@ Speilet etter [quality/](../quality): scripts og config i `release/`, npm-wrappe
 | bifrost-public-ui | Public cup-UI |
 | bifrost-admin-ui | Admin – bruker backend |
 | bifrost-homepage | Markedsføringsside – kun production |
-| bifrost-arrangor-ui | Arrangørportal – track-only inntil deploy er klart |
+| bifrost-arrangor-ui | Arrangørportal – `trackOnly` inntil FTP/DNS er klart (test-domener under) |
 | bifrost-shared | Migrasjoner/seeds – track-only commit-pin |
 
 ## Staging = lokalt (ikke sky-deploy)
@@ -22,10 +22,21 @@ Sky-staging var ustabilt for Playwright i GitHub Actions. **Quality kjøres loka
 | Steg | Hvor | Kommando |
 |------|------|----------|
 | Quality | Lokalt | `npm run quality:local` (public + admin + arrangor*) |
-| Test-demo | Sky (ProISP) | `release:deploy test` (backend → public-ui → admin-ui) |
+| Test-demo | Sky (ProISP) | `release:deploy test` (backend → public-ui → admin-ui → arrangor-ui når `trackOnly` fjernes) |
 | Produksjon | Sky (ProISP) | `release:deploy production` (+ homepage) |
 
-\* Arrangør hoppes over automatisk til `skipUntilReady` fjernes i manifest.
+\* Arrangør er `trackOnly` i `repos.yml` til ProISP/DNS/secrets er på plass. Kjør `quality:local` med cup-spesifikke arrangør-manifests.
+
+### Arrangørportal (test, multi-cup)
+
+Én FTP-deploy betjener begge cup-tenants via host-oppløsning:
+
+| Cup | Arrangør test |
+|-----|---------------|
+| Jaktfeltcup | `https://test.arrangor.jaktfeltcup.no` |
+| Namdal | `https://test.arrangor.namdal.jaktfeltkarusell.no` |
+
+Fjern `trackOnly: true` under `arrangor-ui` i `release/config/repos.yml` når FTP-path, DNS og server-`.env` er verifisert.
 
 Ingen FTP-deploy til staging i release-flyten. Staging brukes ikke i den nye flyten.
 
@@ -93,7 +104,7 @@ npm run release:deploy -- -ReleaseId 2026-07-02-001 -Environment production
 |-----|-----------|----------|
 | Jaktfeltcup / Namdal | `*.local` cup-domener | `quality/apps/*.yml` |
 | Admin | `admin.bifrost.local` | `quality/apps/admin.yml` |
-| Arrangør | `arrangor.bifrost.local` | `quality/apps/arrangor.yml` (skip inntil app finnes) |
+| Arrangør | `arrangor.jaktfeltcup.local`, `arrangor.namdal.jaktfeltkarusell.local` | `quality/apps/arrangor-jaktfeltcup.yml`, `arrangor-namdal.yml` |
 
 ```powershell
 copy .env.local-quality.example .env.local-quality

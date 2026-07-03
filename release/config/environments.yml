@@ -9,13 +9,15 @@ localQuality:
     - jaktfeltcup
     - namdal
     - admin
-    - arrangor
+    - arrangor-jaktfeltcup
+    - arrangor-namdal
   localUrls:
     public-ui: http://jaktfeltcup.local
     admin-ui: http://admin.bifrost.local
-    arrangor-ui: http://arrangor.bifrost.local
+    arrangor-jaktfeltcup: http://arrangor.jaktfeltcup.local
+    arrangor-namdal: http://arrangor.namdal.jaktfeltkarusell.local
   manualVerifyNote: >-
-    quality:local kjører public-ui, admin og arrangør (arrangor hoppes over til appen er klar).
+    quality:local kjører public-ui, admin og begge arrangør-cup-portaler.
     Alle deler samme backend – API-endringer testes på tvers.
 
 # Deploy-miljøer synket til GitHub Environments (kun test og production)
@@ -28,7 +30,9 @@ environments:
       public-ui: https://test.jaktfeltcup.no
       backend: https://test.api.bifrostevents.no
       admin-ui: https://test.admin.bifrostevents.no
-      arrangor-ui: https://test.arrangor.bifrostevents.no
+      arrangor-ui: https://test.arrangor.jaktfeltcup.no
+      arrangor-jaktfeltcup: https://test.arrangor.jaktfeltcup.no
+      arrangor-namdal: https://test.arrangor.namdal.jaktfeltkarusell.no
     ftpVars:
       - FTP_HOST
       - FTP_USERNAME
@@ -46,7 +50,9 @@ environments:
       public-ui: https://jaktfeltcup.no
       backend: https://api.bifrostevents.no
       admin-ui: https://admin.bifrostevents.no
-      arrangor-ui: https://arrangor.bifrostevents.no
+      arrangor-ui: https://arrangor.jaktfeltcup.no
+      arrangor-jaktfeltcup: https://arrangor.jaktfeltcup.no
+      arrangor-namdal: https://arrangor.namdal.jaktfeltkarusell.no
       homepage: https://bifrostevents.no
     ftpVars:
       - FTP_HOST

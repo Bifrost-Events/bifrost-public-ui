@@ -228,15 +228,6 @@ final class BackendApiClient
     }
 
     /**
-     * @param array<string, mixed> $body
-     * @return array{ok: bool, status: int, data: array<string, mixed>|null, error: string|null, errors?: array<string, string>}
-     */
-    public function createParticipantOrganization(array $body): array
-    {
-        return $this->request('POST', '/api/participant/organizations', $body);
-    }
-
-    /**
      * @return array{ok: bool, status: int, data: array<string, mixed>|null, error: string|null, errors?: array<string, string>}
      */
     public function logout(): array

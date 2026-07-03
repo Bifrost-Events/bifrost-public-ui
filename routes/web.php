@@ -56,9 +56,6 @@ return function (array $app): Router {
 
     $onboarding = new OnboardingController();
     $router->get('/onboarding', $requireLogin(fn () => $onboarding->index()));
-    $router->post('/onboarding/choose', $requireLogin(fn () => $onboarding->choose()));
-    $router->post('/onboarding/organizer/accept-terms', $requireLogin(fn () => $onboarding->acceptOrganizerTerms()));
-    $router->post('/onboarding/organizer/create', $requireLogin(fn () => $onboarding->createOrganizer()));
     $router->post('/onboarding/participants/{id}/claim', $requireLogin(fn (int $id) => $onboarding->claimParticipant($id)));
 
     $router->get('/min-side/profil', $requireLogin(fn () => $placeholder->myPage('profil')));

@@ -165,47 +165,188 @@ function quality_migrations_path(): string
     return $migrations;
 }
 
+function quality_jaktfelt_migrations_path(): string
+{
+    $backendPath = quality_backend_path();
+    $candidates = [
+        $backendPath . '/../../main-projects/jaktfeltnamdalen/database/migrations',
+        $backendPath . '/../main-projects/jaktfeltnamdalen/database/migrations',
+    ];
+
+    foreach ($candidates as $candidate) {
+        $path = realpath($candidate);
+        if ($path !== false && is_dir($path)) {
+            return $path;
+        }
+    }
+
+    throw new RuntimeException(
+        'Fant ikke jaktfeltnamdalen/database/migrations (forventet under main-projects/jaktfeltnamdalen).',
+    );
+}
+
+function quality_ensure_schema_migrations_table(array $db): void
+{
+    quality_run_mysql(
+        $db,
+        'CREATE TABLE IF NOT EXISTS schema_migrations (migration VARCHAR(255) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
+        $db['name'],
+    );
+}
+
+function quality_record_migration(array $db, string $name): void
+{
+    $escaped = str_replace("'", "''", $name);
+    quality_run_mysql(
+        $db,
+        "INSERT IGNORE INTO schema_migrations (migration) VALUES ('{$escaped}')",
+        $db['name'],
+    );
+}
+
 /**
- * Greenfield-migrering via mysql-klient (mer robust enn PHP split på Windows/MariaDB).
- * Hopper over prod-backfill-filer (krever jaktfelt_*-data).
+ * Bifrost additive migreringer (auth_*, bifrost_*) — ikke greenfield 001_initial eller prod-backfill.
  */
-function quality_is_greenfield_migration(string $name): bool
+function quality_is_bifrost_additive_migration(string $name): bool
 {
     if ($name === '001_initial_bifrost_schema.sql') {
-        return true;
+        return false;
+    }
+    if (str_contains($name, 'backfill')) {
+        return false;
     }
     if (str_starts_with($name, 'auth_')) {
         return true;
     }
-    if (str_starts_with($name, 'bifrost_') && !str_contains($name, 'backfill')) {
+    if (str_starts_with($name, 'bifrost_')) {
         return true;
     }
 
     return false;
 }
 
-function quality_run_greenfield_migrations(): void
+function quality_applied_migrations(array $db): array
+{
+    quality_ensure_schema_migrations_table($db);
+
+    $bin = quality_mysql_bin();
+    $args = [
+        escapeshellarg($bin),
+        '-h', escapeshellarg($db['host']),
+        '-u', escapeshellarg($db['user']),
+        '-N',
+        '-B',
+    ];
+    if ($db['pass'] !== '') {
+        $args[] = '-p' . escapeshellarg($db['pass']);
+    }
+    $args[] = escapeshellarg($db['name']);
+    $args[] = '-e';
+    $args[] = escapeshellarg('SELECT migration FROM schema_migrations');
+
+    $cmd = implode(' ', $args);
+    $output = shell_exec($cmd . ' 2>&1');
+    if (!is_string($output)) {
+        return [];
+    }
+
+    $applied = [];
+    foreach (preg_split('/\R/', trim($output)) ?: [] as $line) {
+        $name = trim($line);
+        if ($name !== '' && !str_starts_with($name, 'ERROR')) {
+            $applied[$name] = true;
+        }
+    }
+
+    return $applied;
+}
+
+function quality_run_jaktfelt_migrations(): void
 {
     $db = quality_db_config();
+    $applied = quality_applied_migrations($db);
+
+    $migrationsDir = quality_jaktfelt_migrations_path();
+    $files = glob($migrationsDir . DIRECTORY_SEPARATOR . '*.sql') ?: [];
+    sort($files, SORT_NATURAL);
+
+    foreach ($files as $file) {
+        $name = basename($file);
+        if (isset($applied[$name])) {
+            echo "Hoppet over (allerede kjørt): $name\n";
+            continue;
+        }
+
+        echo "Jaktfelt-migrering: $name\n";
+        quality_run_mysql_file($db, $file, $db['name']);
+        quality_record_migration($db, $name);
+    }
+}
+
+function quality_align_jaktfelt_auth_for_bifrost(): void
+{
+    $db = quality_db_config();
+    $applied = quality_applied_migrations($db);
+    if (!isset($applied['v2_000_auth_shared_schema_stub.sql'])) {
+        return;
+    }
+
+    $marker = '__quality_jaktfelt_auth_bifrost_align';
+    if (isset($applied[$marker])) {
+        return;
+    }
+
+    echo "Tilpasser jaktfelt auth-stub (INT id) for Bifrost FK …\n";
+    foreach ([
+        'ALTER TABLE auth_users MODIFY id INT NOT NULL AUTO_INCREMENT',
+        'ALTER TABLE auth_roles MODIFY id INT NOT NULL AUTO_INCREMENT',
+        'ALTER TABLE auth_applications MODIFY id INT NOT NULL AUTO_INCREMENT',
+    ] as $sql) {
+        quality_run_mysql($db, $sql, $db['name']);
+    }
+    quality_record_migration($db, $marker);
+}
+
+function quality_bootstrap_bifrost_auth_applications(): void
+{
+    $db = quality_db_config();
+    quality_run_mysql(
+        $db,
+        "INSERT IGNORE INTO auth_applications (name) VALUES ('bifrost-admin'), ('bifrost-arrangor'), ('bifrost-public')",
+        $db['name'],
+    );
+}
+
+function quality_run_bifrost_additive_migrations(): void
+{
+    $db = quality_db_config();
+    quality_align_jaktfelt_auth_for_bifrost();
+    $applied = quality_applied_migrations($db);
+
     $migrationsDir = quality_migrations_path();
     $files = glob($migrationsDir . DIRECTORY_SEPARATOR . '*.sql') ?: [];
     sort($files, SORT_NATURAL);
 
     foreach ($files as $file) {
         $name = basename($file);
-        if (!quality_is_greenfield_migration($name)) {
-            echo "Hopper over migrering (backfill/ikke greenfield): $name\n";
+        if (!quality_is_bifrost_additive_migration($name)) {
+            echo "Hopper over (ikke additiv): $name\n";
+            continue;
+        }
+        if (isset($applied[$name])) {
+            echo "Hoppet over (allerede kjørt): $name\n";
+            continue;
+        }
+        if ($name === 'auth_001_core_schema.sql' && isset($applied['v2_000_auth_shared_schema_stub.sql'])) {
+            echo "Hopper over auth_001 (jaktfelt auth-stub dekker auth_* for quality)\n";
+            quality_bootstrap_bifrost_auth_applications();
+            quality_record_migration($db, $name);
             continue;
         }
 
-        echo "Migrerer: $name\n";
+        echo "Bifrost additiv: $name\n";
         quality_run_mysql_file($db, $file, $db['name']);
-        $escaped = str_replace("'", "''", $name);
-        quality_run_mysql(
-            $db,
-            "INSERT IGNORE INTO schema_migrations (migration) VALUES ('{$escaped}')",
-            $db['name'],
-        );
+        quality_record_migration($db, $name);
     }
 }
 
@@ -266,8 +407,10 @@ try {
 
         case 'migrate':
             DatabaseResetGuard::assertMigrateAllowed();
-            echo "Kjører greenfield-migreringer via mysql …\n";
-            quality_run_greenfield_migrations();
+            echo "Kjører jaktfeltnamdalen-migreringer via mysql …\n";
+            quality_run_jaktfelt_migrations();
+            echo "Kjører Bifrost additive migreringer …\n";
+            quality_run_bifrost_additive_migrations();
             echo "Migrate fullført.\n";
             exit(0);
 
@@ -277,9 +420,10 @@ try {
             $seeds = quality_shared_seeds_path();
             $files = [
                 '001_local_tenants.sql',
-                '001_local_greenfield_cup_data.sql',
+                '001_local_jaktfelt_cup_data.sql',
                 '002_local_admin_user.sql',
                 '003_quality_local_hosts.sql',
+                '004_quality_competition_fixtures.sql',
             ];
             foreach ($files as $file) {
                 $path = $seeds . DIRECTORY_SEPARATOR . $file;

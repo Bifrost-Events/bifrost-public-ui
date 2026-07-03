@@ -1,0 +1,17 @@
+kind: portal
+name: Namdal Arrangør
+key: arrangor-namdal
+hostHeader: arrangor.namdal.jaktfeltkarusell.local
+hosts:
+  local-dev: http://arrangor.namdal.jaktfeltkarusell.local
+  local-quality: http://arrangor.namdal.jaktfeltkarusell.local
+  test: https://test.arrangor.namdal.jaktfeltkarusell.no
+  production: https://arrangor.namdal.jaktfeltkarusell.no
+expected:
+  titleContains: Arrangør
+  visibleText:
+    - Arrangør
+  healthMarker: arrangor_ui
+routes:
+  - path: /login
+    name: Login

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Read-only HTTP smoke etter deploy. Ingen DB-reset, ingen skriving.
 # Usage: http-smoke.sh <mode> <app_url> <release_id> <ref>
-#   mode: public-ui | backend | admin-ui
+#   mode: public-ui | backend | admin-ui | arrangor-ui
 
 set -euo pipefail
 
@@ -72,7 +72,7 @@ case "$MODE" in
     curl_check "$APP_URL/api/health" "api/health"
     version_check "$APP_URL/api/version"
     ;;
-  admin-ui)
+  admin-ui|arrangor-ui)
     curl_check "$APP_URL/health" "health"
     version_check "$APP_URL/version.json"
     ;;

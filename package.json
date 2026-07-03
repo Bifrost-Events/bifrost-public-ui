@@ -4,6 +4,9 @@
   "description": "Playwright quality suite for Bifrost platform (public-ui, admin, arrangør)",
   "scripts": {
     "quality:local": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all playwright test",
+    "quality:flows": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all playwright test quality/tests/staging",
+    "quality:flows:headed": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all playwright test quality/tests/staging --headed --workers=1",
+    "quality:flows:ui": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all playwright test quality/tests/staging --ui",
     "quality:staging": "cross-env QUALITY_ENV=staging QUALITY_APP=all playwright test",
     "quality:test": "cross-env QUALITY_ENV=test QUALITY_APP=all playwright test quality/tests/smoke",
     "quality:prod-smoke": "cross-env QUALITY_ENV=production QUALITY_APP=all playwright test quality/tests/smoke",
@@ -15,6 +18,8 @@
     "quality:db:migrate": "cross-env BIFROST_DOTENV=.env.local-quality php quality/bin/quality-db.php migrate",
     "quality:db:seed": "cross-env BIFROST_DOTENV=.env.local-quality php quality/bin/quality-db.php seed",
     "quality:db:prepare": "cross-env BIFROST_DOTENV=.env.local-quality php quality/bin/quality-db.php prepare",
+    "quality:activate": "powershell -ExecutionPolicy Bypass -File quality/scripts/activate-local-quality.ps1 -Action activate",
+    "quality:deactivate": "powershell -ExecutionPolicy Bypass -File quality/scripts/activate-local-quality.ps1 -Action deactivate",
     "release:create": "powershell -ExecutionPolicy Bypass -File release/scripts/release-create.ps1",
     "release:check": "powershell -ExecutionPolicy Bypass -File release/scripts/release-check.ps1",
     "release:approve": "powershell -ExecutionPolicy Bypass -File release/scripts/release-approve.ps1",

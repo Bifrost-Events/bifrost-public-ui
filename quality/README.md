@@ -39,7 +39,20 @@ copy .env.local-quality.example ..\bifrost-backend\.env.local-quality
 | `.env.staging.example` | Sky staging |
 | `.env.production.example` | Produksjon |
 
-`local-dev` og `local-quality` deler **samme lokale hostnames** men **forskjellig database**. Bytt `.env` (eller Apache `SetEnv BIFROST_DOTENV`) før quality-kjøring – ikke kjør begge samtidig mot samme Apache-instans uten vhost-separasjon.
+`local-dev` og `local-quality` deler **samme lokale hostnames** men **forskjellig database**. Apache laster `.env` som standard — **ikke** `.env.local-quality`.
+
+```powershell
+# Før quality:flows / quality:local (kopierer .env.local-quality → .env)
+npm run quality:activate
+# Restart Apache/XAMPP
+
+# Etter quality-kjøring (gjenopprett dev-.env fra backup)
+npm run quality:deactivate
+```
+
+Alternativt: `SetEnv BIFROST_DOTENV .env.local-quality` i Apache vhost for `api.bifrost.local` og cup-hosts.
+
+Global setup sjekker at `http://api.bifrost.local/api/health` rapporterer `app_env=local-quality` og `database_name=bifrost_quality_local` før tester starter.
 
 Legacy: `APP_ENV=development` behandles som `local-dev`.
 
@@ -54,7 +67,7 @@ Legacy: `APP_ENV=development` behandles som `local-dev`.
 Hosts-fil (typisk allerede på plass lokalt):
 
 ```
-127.0.0.1 slatlemcup.local jaktfeltcup.local namdal.jaktfeltkarusell.local admin.bifrost.local arrangor.bifrost.local
+127.0.0.1 slatlemcup.local jaktfeltcup.local namdal.jaktfeltkarusell.local admin.bifrost.local arrangor.jaktfeltcup.local arrangor.namdal.jaktfeltkarusell.local
 ```
 
 ### Plattform-portaler (admin / arrangør)
@@ -62,7 +75,8 @@ Hosts-fil (typisk allerede på plass lokalt):
 | App | Manifest | Lokal URL | Smoke |
 |-----|----------|-----------|-------|
 | Admin | `quality/apps/admin.yml` | `admin.bifrost.local` | `/health`, `/login` |
-| Arrangør | `quality/apps/arrangor.yml` | `arrangor.bifrost.local` | Hoppes over til app er klar (`skipUntilReady`) |
+| Arrangør Jaktfeltcup | `quality/apps/arrangor-jaktfeltcup.yml` | `arrangor.jaktfeltcup.local` | Login, bli-arrangor, stevner |
+| Arrangør Namdal | `quality/apps/arrangor-namdal.yml` | `arrangor.namdal.jaktfeltkarusell.local` | Login, bli-arrangor, stevner |
 
 Admin-ui trenger egen `.env` med `BACKEND_API_URL` mot samme backend som quality (f.eks. `http://api.bifrost.local`).
 
@@ -105,6 +119,7 @@ npm run quality:install
 | Script | Beskrivelse |
 |--------|-------------|
 | `npm run quality:local` | Full suite mot `local-quality` |
+| `npm run quality:flows` | Staging-flyter lokalt (bruker, påmelding, CupAdmin) |
 | `npm run quality:staging` | Full suite mot staging |
 | `npm run quality:test` | Smoke mot `test.*` |
 | `npm run quality:prod-smoke` | Smoke mot produksjon |
@@ -119,6 +134,27 @@ cross-env QUALITY_ENV=local-quality QUALITY_APP=namdal npx playwright test
 
 # Smoke mot test-miljø
 npm run quality:test
+
+# Staging-flyter (bruker, påmelding, CupAdmin)
+npm run quality:flows
+```
+
+### Staging-flyter (`quality/tests/staging/`)
+
+Kjøres lokalt mot `local-quality`. Krever Apache/vhosts og `npm run quality:db:prepare` (seed `004_quality_competition_fixtures.sql`).
+
+| Spec | Dekker |
+|------|--------|
+| `participant-user.spec.ts` | Registrering, bruker+deltaker, flere deltakere, innlogging |
+| `competition-signup.spec.ts` | Påmelding til seedet «Quality test stevne» |
+| `admin-cup.spec.ts` | SystemAdmin oppretter cup i admin |
+| `arrangor-portal.spec.ts` | Arrangørregistrering, godkjenning, stevne, invitasjon |
+
+Arrangør testes med `npm run quality:local` mot `arrangor.jaktfeltcup.local` og `arrangor.namdal.jaktfeltkarusell.local`.
+
+```powershell
+# Kun bruker/deltaker mot namdal
+cross-env QUALITY_ENV=local-quality QUALITY_APP=namdal npx playwright test quality/tests/staging/participant-user.spec.ts
 ```
 
 | Variabel | Standard | Verdier |

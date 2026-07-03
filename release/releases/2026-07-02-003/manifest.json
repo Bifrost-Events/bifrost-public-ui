@@ -1,6 +1,6 @@
 ﻿{
-    "releaseId":  "2026-07-02-005",
-    "createdAt":  "2026-07-02T08:38:26Z",
+    "releaseId":  "2026-07-02-003",
+    "createdAt":  "2026-07-02T08:33:13Z",
     "repositories":  {
                          "arrangor-ui":  {
                                              "owner":  "Bifrost-Events",
@@ -51,20 +51,20 @@
                                            "owner":  "Bifrost-Events",
                                            "repo":  "bifrost-public-ui",
                                            "branch":  "main",
-                                           "commit":  "691f8ccb95879d5e067b7931a34ac6b9ef3d4fff",
-                                           "shortCommit":  "691f8cc",
-                                           "dirty":  false,
+                                           "commit":  "1f9004b7c61b6ce2d35366f00904024f3b4b5b93",
+                                           "shortCommit":  "1f9004b",
+                                           "dirty":  true,
                                            "trackOnly":  false
                                        }
                      },
     "status":  {
                    "quality":  {
-                                   "state":  "approved",
-                                   "updatedAt":  "2026-07-02T08:51:19Z"
+                                   "state":  "pending",
+                                   "updatedAt":  null
                                },
                    "testDeploy":  {
-                                      "state":  "ok",
-                                      "updatedAt":  "2026-07-02T09:44:31Z"
+                                      "state":  "pending",
+                                      "updatedAt":  null
                                   },
                    "testSmoke":  {
                                      "state":  "pending",
@@ -84,12 +84,6 @@
                                        }
                },
     "approvals":  [
-                      {
-                          "type":  "quality",
-                          "method":  "manual",
-                          "by":  "Sjur",
-                          "reason":  "Playwright platform OK",
-                          "timestamp":  "2026-07-02T08:51:19Z"
-                      }
+
                   ]
 }

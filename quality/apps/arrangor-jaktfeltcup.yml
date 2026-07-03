@@ -1,0 +1,17 @@
+kind: portal
+name: Jaktfeltcup Arrangør
+key: arrangor-jaktfeltcup
+hostHeader: arrangor.jaktfeltcup.local
+hosts:
+  local-dev: http://arrangor.jaktfeltcup.local
+  local-quality: http://arrangor.jaktfeltcup.local
+  test: https://test.arrangor.jaktfeltcup.no
+  production: https://arrangor.jaktfeltcup.no
+expected:
+  titleContains: Arrangør
+  visibleText:
+    - Arrangør
+  healthMarker: arrangor_ui
+routes:
+  - path: /login
+    name: Login

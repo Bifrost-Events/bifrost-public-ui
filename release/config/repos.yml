@@ -33,7 +33,9 @@ repositories:
     owner: Bifrost-Events
     repo: bifrost-arrangor-ui
     localPath: ../bifrost-arrangor-ui
-    trackOnly: true
+    workflow: deploy-release.yml
+    deployOrder: 5
+    smokeMode: arrangor-ui
   shared:
     owner: Bifrost-Events
     repo: bifrost-shared

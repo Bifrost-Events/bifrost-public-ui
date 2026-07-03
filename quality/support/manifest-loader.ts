@@ -51,6 +51,8 @@ export interface EnvironmentManifest {
   };
   database?: {
     prepareBeforeRun?: boolean;
+    expectedBackendDatabase?: string;
+    dotenvFile?: string;
   };
   /** Når satt og QUALITY_APP=all: kun disse cup-nøklene kjøres */
   apps?: string[];
