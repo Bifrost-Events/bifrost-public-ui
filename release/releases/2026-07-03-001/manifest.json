@@ -6,8 +6,8 @@
                                              "owner":  "Bifrost-Events",
                                              "repo":  "bifrost-arrangor-ui",
                                              "branch":  "main",
-                                             "commit":  "328ecebb248ab4676e65cd7db342a70238450c6c",
-                                             "shortCommit":  "328eceb",
+                                             "commit":  "965c7fe17b72636a17fbcfc3e892e1ff9476cf21",
+                                             "shortCommit":  "965c7fe",
                                              "dirty":  false,
                                              "trackOnly":  false
                                          },
@@ -24,8 +24,8 @@
                                          "owner":  "Bifrost-Events",
                                          "repo":  "bifrost-backend",
                                          "branch":  "main",
-                                         "commit":  "7df5d057aa6266542f37e296d9750d6c0908a16a",
-                                         "shortCommit":  "7df5d05",
+                                         "commit":  "5458106b4d585ba1a9b615fbdd125966029065e9",
+                                         "shortCommit":  "5458106",
                                          "dirty":  false,
                                          "trackOnly":  false
                                      },
@@ -33,8 +33,8 @@
                                           "owner":  "Bifrost-Events",
                                           "repo":  "bifrost-admin-ui",
                                           "branch":  "main",
-                                          "commit":  "02135c020981b419aef384140aece58d77b95c3c",
-                                          "shortCommit":  "02135c0",
+                                          "commit":  "f0396547a3c1686f807570ed8b7444c295140567",
+                                          "shortCommit":  "f039654",
                                           "dirty":  false,
                                           "trackOnly":  false
                                       },
@@ -51,8 +51,8 @@
                                            "owner":  "Bifrost-Events",
                                            "repo":  "bifrost-public-ui",
                                            "branch":  "main",
-                                           "commit":  "e7ab7fc7c3edbc2000b1c2d7ea147ce83a71de60",
-                                           "shortCommit":  "e7ab7fc",
+                                           "commit":  "9af03e5a8889a1d866b86e906adef8c743244c77",
+                                           "shortCommit":  "9af03e5",
                                            "dirty":  false,
                                            "trackOnly":  false
                                        }
