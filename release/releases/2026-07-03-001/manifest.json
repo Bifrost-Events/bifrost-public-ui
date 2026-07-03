@@ -63,8 +63,8 @@
                                    "updatedAt":  "2026-07-03T10:34:39Z"
                                },
                    "testDeploy":  {
-                                      "state":  "pending",
-                                      "updatedAt":  null
+                                      "state":  "ok",
+                                      "updatedAt":  "2026-07-03T10:36:13Z"
                                   },
                    "testSmoke":  {
                                      "state":  "pending",

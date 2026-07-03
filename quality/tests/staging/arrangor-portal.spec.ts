@@ -48,10 +48,16 @@ test.describe('Staging / arrangør @staging', () => {
     const roundSelect = page.locator('#round_id');
     await expect(roundSelect).toBeVisible({ timeout: 15_000 });
     await roundSelect.selectOption({ index: 1 });
+    const eventDate = await roundSelect
+      .locator('option:checked')
+      .getAttribute('data-start-date');
+    expect(eventDate, 'Valgt runde må ha startdato i seed').toBeTruthy();
     await page.locator('#name').fill(competitionName);
-    await page.locator('#event_date').fill('2030-06-15');
+    await page.locator('#event_date').fill(eventDate!);
     await page.getByRole('button', { name: 'Opprett' }).click();
-    await page.waitForURL(/\/stevner/, { timeout: 30_000 });
+    await page.waitForURL((url) => url.pathname.replace(/\/$/, '') === '/stevner', {
+      timeout: 30_000,
+    });
     await expect(page.locator('body')).toContainText(competitionName);
   });
 
