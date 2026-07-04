@@ -23,10 +23,13 @@ Bifrost skiller tydelig mellom fem applikasjonsmiljøer. **Public-ui har ingen d
 Kopier eksempelprofil til aktiv fil, eller pek med `BIFROST_DOTENV`:
 
 ```powershell
+# Daglig utvikling (prod-kopi DB):
 copy .env.local-dev.example .env
 copy .env.local-dev.example ..\bifrost-backend\.env
+# Valgfritt personlig overlay (gitignored):
+copy .env.local-dev.example .env.local
 
-# quality-kjøring (begge lag):
+# Playwright (resetbar quality-DB – rør ikke .env):
 copy .env.local-quality.example .env.local-quality
 copy .env.local-quality.example ..\bifrost-backend\.env.local-quality
 ```
@@ -39,18 +42,26 @@ copy .env.local-quality.example ..\bifrost-backend\.env.local-quality
 | `.env.staging.example` | Sky staging |
 | `.env.production.example` | Produksjon |
 
-`local-dev` og `local-quality` deler **samme lokale hostnames** men **forskjellig database**. Apache laster `.env` som standard — **ikke** `.env.local-quality`.
+`local-dev` og `local-quality` deler **samme lokale hostnames** men **forskjellig database**.
+
+| Lag | Daglig utvikling | Playwright |
+|-----|------------------|------------|
+| PHP (Apache) | `.env` + `.env.local` | `.env.local-quality` (midlertidig via activate) |
+| Playwright CLI / quality-db | — | `.env.local-quality` via `BIFROST_DOTENV` |
+
+`npm run quality:local` aktiverer Apache-profil midlertidig og **gjenoppretter dev-.env** når testene er ferdige.
 
 ```powershell
-# Før quality:flows / quality:local (kopierer .env.local-quality → .env)
+# Anbefalt: én kommando (activate → test → deactivate)
+npm run quality:local
+
+# Manuell activate/deactivate (f.eks. feilsøking i nettleser etter test):
 npm run quality:activate
 # Restart Apache/XAMPP
-
-# Etter quality-kjøring (gjenopprett dev-.env fra backup)
 npm run quality:deactivate
 ```
 
-Alternativt: `SetEnv BIFROST_DOTENV .env.local-quality` i Apache vhost for `api.bifrost.local` og cup-hosts.
+Alternativt: `SetEnv BIFROST_DOTENV .env.local-quality` i Apache vhost (da bruker også manuell surfing quality-DB).
 
 Global setup sjekker at `http://api.bifrost.local/api/health` rapporterer `app_env=local-quality` og `database_name=bifrost_quality_local` før tester starter.
 
