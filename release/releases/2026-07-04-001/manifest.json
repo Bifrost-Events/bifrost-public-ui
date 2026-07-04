@@ -1,0 +1,95 @@
+﻿{
+    "releaseId":  "2026-07-04-001",
+    "createdAt":  "2026-07-04T00:35:58Z",
+    "repositories":  {
+                         "arrangor-ui":  {
+                                             "owner":  "Bifrost-Events",
+                                             "repo":  "bifrost-arrangor-ui",
+                                             "branch":  "main",
+                                             "commit":  "5e4fb7d6970f9245642da92a5853d2214f2c1c4d",
+                                             "shortCommit":  "5e4fb7d",
+                                             "dirty":  false,
+                                             "trackOnly":  false
+                                         },
+                         "shared":  {
+                                        "owner":  "Bifrost-Events",
+                                        "repo":  "bifrost-shared",
+                                        "branch":  "main",
+                                        "commit":  "349683aa27924fb6403f4d1854ca9e86015f4f58",
+                                        "shortCommit":  "349683a",
+                                        "dirty":  false,
+                                        "trackOnly":  true
+                                    },
+                         "backend":  {
+                                         "owner":  "Bifrost-Events",
+                                         "repo":  "bifrost-backend",
+                                         "branch":  "main",
+                                         "commit":  "cc1f171db16b44fcb05021cced3448c60b7e990f",
+                                         "shortCommit":  "cc1f171",
+                                         "dirty":  false,
+                                         "trackOnly":  false
+                                     },
+                         "admin-ui":  {
+                                          "owner":  "Bifrost-Events",
+                                          "repo":  "bifrost-admin-ui",
+                                          "branch":  "main",
+                                          "commit":  "dcf1bc1fb2317e30c16f6eab5554fa7bc71ddba4",
+                                          "shortCommit":  "dcf1bc1",
+                                          "dirty":  false,
+                                          "trackOnly":  false
+                                      },
+                         "homepage":  {
+                                          "owner":  "sjurivar",
+                                          "repo":  "bifrost-homepage",
+                                          "branch":  "main",
+                                          "commit":  "90eb498f347e308792b21e562b767858f2edc730",
+                                          "shortCommit":  "90eb498",
+                                          "dirty":  false,
+                                          "trackOnly":  false
+                                      },
+                         "public-ui":  {
+                                           "owner":  "Bifrost-Events",
+                                           "repo":  "bifrost-public-ui",
+                                           "branch":  "main",
+                                           "commit":  "42ab2b5d6ca7306c1769e1bc21d6597a1618a02e",
+                                           "shortCommit":  "42ab2b5",
+                                           "dirty":  false,
+                                           "trackOnly":  false
+                                       }
+                     },
+    "status":  {
+                   "quality":  {
+                                   "state":  "approved",
+                                   "updatedAt":  "2026-07-04T00:36:05Z"
+                               },
+                   "testDeploy":  {
+                                      "state":  "pending",
+                                      "updatedAt":  null
+                                  },
+                   "testSmoke":  {
+                                     "state":  "pending",
+                                     "updatedAt":  null
+                                 },
+                   "testApproval":  {
+                                        "state":  "pending",
+                                        "updatedAt":  null
+                                    },
+                   "productionDeploy":  {
+                                            "state":  "pending",
+                                            "updatedAt":  null
+                                        },
+                   "productionSmoke":  {
+                                           "state":  "pending",
+                                           "updatedAt":  null
+                                       }
+               },
+    "approvals":  [
+                      {
+                          "type":  "quality",
+                          "method":  "manual",
+                          "by":  "Sjur",
+                          "reason":  "StevneAdmin gjennomforing, NJFF scoring og slot locks verifisert lokalt.",
+                          "timestamp":  "2026-07-04T00:36:05Z"
+                      }
+                  ]
+}
