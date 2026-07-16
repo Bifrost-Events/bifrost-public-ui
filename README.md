@@ -24,8 +24,11 @@ Se [quality/README.md](quality/README.md) for `local-dev`, `local-quality`, `tes
 
 - PHP 8.1+
 - Composer
-- **`bifrost-backend`** kjørende på http://api.bifrost.local
-- Database seed fra **`bifrost-shared`** (`001_local_tenants.sql`)
+- **`bifrost-backend`** (V2 hybrid: auth, resultater, påmelding) på http://api.bifrost.local
+- **`bifrost-events`** via admin-core (V3: kalender + portal-kontekst) — sett `EVENTS_URL=http://admin.bifrost.local`
+- Database seed fra **`bifrost-shared`** / admin-core + events seeds
+
+Se [docs/public-portal-v3-transition.md](docs/public-portal-v3-transition.md) for hybridmodellen.
 
 ## Oppsett
 

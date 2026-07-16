@@ -18,7 +18,7 @@ $h = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBS
             <?php foreach ($competitions as $comp): ?>
                 <?php if (!is_array($comp)) { continue; } ?>
                 <li>
-                    <a href="/results/<?= (int) ($comp['id'] ?? 0) ?>">
+                    <a href="<?= $h((string) ($comp['url'] ?? ('/arrangementer/' . (int) ($comp['id'] ?? 0) . '/resultater'))) ?>">
                         <strong><?= $h((string) ($comp['name'] ?? '')) ?></strong>
                         <span class="muted"><?= $h((string) ($comp['competition_date'] ?? '')) ?></span>
                     </a>

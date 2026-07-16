@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 /** @var string $title */
 /** @var string $content */
+/** @var array<string, mixed> $portal_context */
 /** @var array<string, mixed> $tenant_context */
 /** @var array<string, mixed> $cup_config */
 /** @var array<string, mixed>|null $user */
@@ -14,11 +15,14 @@ declare(strict_types=1);
 
 $h = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
+$portalContext = $portal_context ?? [];
 $tenantContext = $tenant_context ?? [];
 $cupConfig = is_array($cup_config ?? null) ? $cup_config : \App\Support\CupConfigLoader::current();
 $brand = is_array($cupConfig['brand'] ?? null) ? $cupConfig['brand'] : [];
 $cssVars = \App\Support\CupConfigLoader::cssVariables($cupConfig);
-$displayName = (string) ($cupConfig['name'] ?? ($tenantContext['display_name'] ?? 'Bifrost'));
+$displayName = (string) ($cupConfig['name']
+    ?? ($portalContext['display_name'] ?? null)
+    ?? ($tenantContext['display_name'] ?? 'Bifrost'));
 $shortName = (string) ($cupConfig['short_name'] ?? $displayName);
 $tagline = (string) ($brand['tagline'] ?? '');
 $logoUrl = trim((string) ($brand['logo'] ?? ''));
@@ -369,6 +373,20 @@ if (is_array($user)) {
             margin-bottom: 1rem;
         }
         .muted { color: var(--muted); }
+        .breadcrumb { font-size: 0.9rem; margin: 0 0 1rem; }
+        .breadcrumb a { text-decoration: none; }
+        .breadcrumb a:hover { text-decoration: underline; }
+        .hybrid-v2-actions { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+        .button {
+            display: inline-block;
+            margin: 0.25rem 0.5rem 0.25rem 0;
+            padding: 0.45rem 0.85rem;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .prose { margin: 1rem 0; }
         .flash {
             padding: 0.75rem 1rem;
             border-radius: 6px;
@@ -457,6 +475,7 @@ if (is_array($user)) {
     Cup config: <code><?= $h((string) ($configMeta['config_file'] ?? 'ukjent')) ?></code>
     · host <code><?= $h((string) ($configMeta['resolved_host'] ?? '')) ?></code>
     · mal <code><?= $h((string) (($cupConfig['layout']['template'] ?? 'default'))) ?></code>
+    · V3 app <code><?= $h((string) ($portalContext['application_key'] ?? ($portalContext['resolved'] ? '' : 'unresolved'))) ?></code>
 </div>
 <?php endif; ?>
 <header class="site-header">
@@ -470,8 +489,10 @@ if (is_array($user)) {
                     <span class="brand-title"><?= $h($displayName) ?></span>
                 </span>
             </a>
-            <?php if (!($tenantContext['resolved'] ?? false) && ($tenantContext['error'] ?? null) !== null): ?>
-                <small>Tenant ikke funnet for <?= $h((string) ($tenantContext['host'] ?? '')) ?></small>
+            <?php if (!($portalContext['resolved'] ?? false) && ($portalContext['error'] ?? null) !== null): ?>
+                <small>V3-app ikke funnet for <?= $h((string) ($portalContext['host'] ?? '')) ?></small>
+            <?php elseif (!($tenantContext['resolved'] ?? false) && ($tenantContext['error'] ?? null) !== null): ?>
+                <small>V2-tenant ikke funnet for <?= $h((string) ($tenantContext['host'] ?? '')) ?> (hybrid)</small>
             <?php endif; ?>
         </div>
         <nav class="main-nav" aria-label="Hovedmeny">

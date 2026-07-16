@@ -50,6 +50,7 @@ final class BackendApiClient
     }
 
     /**
+     * @deprecated V3 calendar uses EventsApiClient::publicCalendar(). Kept for emergency/debug only — do not use in calendar UI.
      * @return array{ok: bool, status: int, data: array<string, mixed>|null, error: string|null, errors?: array<string, string>}
      */
     public function publicCalendar(string $host): array

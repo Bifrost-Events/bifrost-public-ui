@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\AdminAuthClient;
 use App\Service\BackendApiClient;
 use App\Support\Auth;
 use App\Support\PublicMenu;
@@ -100,16 +101,29 @@ final class AuthController
         $password = (string) ($_POST['password'] ?? '');
         $returnTo = $this->resolveReturnTo(trim((string) ($_POST['return_to'] ?? '/min-side/profil')));
 
-        $result = (new BackendApiClient())->participantLogin($email, $password);
+        $result = (new AdminAuthClient())->login($email, $password);
         $isAjax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
 
-        if ($result['ok'] && is_array($result['data']['user'] ?? null)) {
-            Session::setAuth($result['data']['user']);
+        if ($result['ok'] && is_array($result['data'] ?? null)) {
+            $user = $result['data'];
+            Session::setAuth($user);
+            Session::setAuthSource('v3');
+            if ((int) ($user['person_id'] ?? 0) > 0) {
+                Session::setActingPersonId((int) $user['person_id']);
+            }
+
+            // Hybrid: best-effort V2 session for signup/deltakere (same credentials, may fail)
+            $v2 = (new BackendApiClient())->participantLogin($email, $password);
+            if (!($v2['ok'] ?? false)) {
+                // Keep V3 session; V2 features will prompt separately
+            }
+
             if ($isAjax) {
                 return Response::json([
                     'success' => true,
                     'returnTo' => $returnTo,
-                    'user' => $result['data']['user'],
+                    'user' => $user,
+                    'auth_source' => 'v3',
                 ]);
             }
 
@@ -244,6 +258,7 @@ final class AuthController
     public function logout(): array
     {
         Session::startRequired();
+        (new AdminAuthClient())->logout();
         (new BackendApiClient())->logout();
         Session::clear();
 

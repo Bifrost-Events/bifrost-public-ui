@@ -48,7 +48,7 @@ final class CupConfigLoader
             return self::$cached;
         }
 
-        $host = TenantContext::requestHost();
+        $host = PublicPortalContext::requestHost();
         $filename = self::HOST_MAP[$host] ?? 'default.json';
         $path = dirname(__DIR__, 2) . '/config/cups/' . $filename;
 

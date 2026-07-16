@@ -7,7 +7,10 @@ namespace App\Support;
 use App\Service\BackendApiClient;
 
 /**
- * Resolver aktiv tenant fra HTTP-host via backend API.
+ * Resolver aktiv V2-tenant fra HTTP-host via bifrost-backend.
+ *
+ * Hybridperiode: brukes fortsatt for auth, resultater, påmelding og deltakerflyt.
+ * Portal-identitet for V3 (kalender/application) skal gå via PublicPortalContext.
  */
 final class TenantContext
 {

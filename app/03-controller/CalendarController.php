@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\BackendApiClient;
+use App\Service\PublicCalendarService;
 use App\Support\Auth;
+use App\Support\PublicPortalContext;
 use App\Support\PublicView;
 use App\Support\Response;
 use App\Support\Session;
@@ -15,23 +17,33 @@ final class CalendarController
 {
     public function index(): array
     {
-        $host = TenantContext::requestHost();
-        $response = (new BackendApiClient())->publicCalendar($host);
+        $host = PublicPortalContext::requestHost();
+        $calendar = (new PublicCalendarService())->forHost($host);
+        $labels = $calendar['labels'];
+        $eventPlural = (string) ($labels['event']['plural'] ?? 'Arrangementer');
+        $seriesSingular = (string) ($labels['series']['singular'] ?? 'Serie');
+
+        $title = $eventPlural;
 
         return PublicView::render('calendar-content', [
-            'api' => $response,
-            'competitions' => ($response['ok'] && is_array($response['data']['competitions'] ?? null))
-                ? $response['data']['competitions']
-                : [],
-            'season' => ($response['ok'] && is_array($response['data']['season'] ?? null))
-                ? $response['data']['season']
-                : null,
-            'error' => $response['ok'] ? null : (string) ($response['error'] ?? 'Kunne ikke hente kalender'),
-        ], 'Stevnekalender');
+            'calendar' => $calendar,
+            'competitions' => $calendar['competitions'],
+            'season' => $calendar['season'],
+            'labels' => $labels,
+            'space' => $calendar['space'],
+            'application' => $calendar['application'],
+            'error' => $calendar['ok'] ? null : (string) ($calendar['error'] ?? 'Kunne ikke hente kalender'),
+            'error_status' => $calendar['ok'] ? null : (int) ($calendar['status'] ?? 0),
+            'series_label' => $seriesSingular,
+            'event_label_plural' => $eventPlural,
+            'event_label_singular' => (string) ($labels['event']['singular'] ?? 'Arrangement'),
+            'source' => 'v3',
+        ], $title, $calendar['ok'] ? 200 : (($calendar['status'] ?? 0) === 404 ? 404 : 503));
     }
 
     public function show(int $id): array
     {
+        // Hybrid: detalj + påmelding fortsatt V2 inntil V3 event-detalj finnes.
         $host = TenantContext::requestHost();
         $response = (new BackendApiClient())->competitionSignup($id, $host);
 
@@ -57,6 +69,7 @@ final class CalendarController
             'organizer' => is_array($data['organizer'] ?? null) ? $data['organizer'] : null,
             'logged_in' => $user !== null,
             'auth_user_id' => is_array($user) ? (int) ($user['id'] ?? 0) : 0,
+            'data_source' => 'v2',
         ], (string) (($data['competition']['name'] ?? null) ?: 'Stevne'));
     }
 

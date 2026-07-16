@@ -13,6 +13,9 @@ final class Session
 
     private const AUTH_KEY = 'bifrost_public_auth';
     private const BACKEND_COOKIE_KEY = 'bifrost_public_backend_cookie';
+    private const ADMIN_COOKIE_KEY = 'bifrost_public_admin_cookie';
+    private const ACTING_PERSON_KEY = 'bifrost_public_acting_person_id';
+    private const AUTH_SOURCE_KEY = 'bifrost_public_auth_source';
     private const FLASH_KEY = 'bifrost_public_flash';
 
     /** @var bool|null */
@@ -75,6 +78,7 @@ final class Session
             '/min-side',
             '/onboarding',
             '/calendar',
+            '/arrangementer',
         ];
 
         foreach ($prefixes as $prefix) {
@@ -115,7 +119,7 @@ final class Session
             return;
         }
 
-        unset($_SESSION[self::AUTH_KEY], $_SESSION[self::BACKEND_COOKIE_KEY], $_SESSION[self::FLASH_KEY]);
+        unset($_SESSION[self::AUTH_KEY], $_SESSION[self::BACKEND_COOKIE_KEY], $_SESSION[self::ADMIN_COOKIE_KEY], $_SESSION[self::ACTING_PERSON_KEY], $_SESSION[self::AUTH_SOURCE_KEY], $_SESSION[self::FLASH_KEY]);
         $_SESSION = [];
         if (ini_get('session.use_cookies')) {
             $p = session_get_cookie_params();
@@ -164,6 +168,69 @@ final class Session
         }
 
         unset($_SESSION[self::BACKEND_COOKIE_KEY]);
+    }
+
+    public static function setAdminCookie(string $cookie): void
+    {
+        self::startRequired();
+        $_SESSION[self::ADMIN_COOKIE_KEY] = $cookie;
+    }
+
+    public static function getAdminCookie(): string
+    {
+        if (!self::startIfExists()) {
+            return '';
+        }
+
+        $cookie = $_SESSION[self::ADMIN_COOKIE_KEY] ?? '';
+
+        return is_string($cookie) ? $cookie : '';
+    }
+
+    public static function clearAdminCookie(): void
+    {
+        if (!self::isActive()) {
+            return;
+        }
+
+        unset($_SESSION[self::ADMIN_COOKIE_KEY]);
+    }
+
+    public static function setActingPersonId(?int $personId): void
+    {
+        self::startRequired();
+        if ($personId === null || $personId <= 0) {
+            unset($_SESSION[self::ACTING_PERSON_KEY]);
+
+            return;
+        }
+        $_SESSION[self::ACTING_PERSON_KEY] = $personId;
+    }
+
+    public static function getActingPersonId(): ?int
+    {
+        if (!self::startIfExists()) {
+            return null;
+        }
+        $id = $_SESSION[self::ACTING_PERSON_KEY] ?? null;
+
+        return is_int($id) || (is_string($id) && ctype_digit($id)) ? (int) $id : null;
+    }
+
+    public static function setAuthSource(string $source): void
+    {
+        self::startRequired();
+        $_SESSION[self::AUTH_SOURCE_KEY] = $source;
+    }
+
+    public static function getAuthSource(): string
+    {
+        if (!self::startIfExists()) {
+            return '';
+        }
+        $source = $_SESSION[self::AUTH_SOURCE_KEY] ?? '';
+
+        return is_string($source) ? $source : '';
     }
 
     /** @param array<string, string> $errors */
