@@ -6,26 +6,19 @@ repositories:
     workflow: deploy-release.yml
     deployOrder: 2
     smokeMode: public-ui
-  backend:
+  admin-core:
     owner: Bifrost-Events
-    repo: bifrost-backend
-    localPath: ../bifrost-backend
+    repo: bifrost-admin-core
+    localPath: ../bifrost-admin-core
     workflow: deploy-release.yml
     deployOrder: 1
-    smokeMode: backend
-  admin-ui:
-    owner: Bifrost-Events
-    repo: bifrost-admin-ui
-    localPath: ../bifrost-admin-ui
-    workflow: deploy-release.yml
-    deployOrder: 3
-    smokeMode: admin-ui
+    smokeMode: admin-core
   homepage:
     owner: sjurivar
     repo: bifrost-homepage
     localPath: ../bifrost-homepage
     workflow: deploy-release.yml
-    deployOrder: 4
+    deployOrder: 3
     smokeMode: homepage
     deployEnvironments:
       - production
@@ -34,8 +27,9 @@ repositories:
     repo: bifrost-arrangor-ui
     localPath: ../bifrost-arrangor-ui
     workflow: deploy-release.yml
-    deployOrder: 5
+    deployOrder: 4
     smokeMode: arrangor-ui
+  # Events er intern modul i admin-core (modules/events) — ikke eget deploy-repo.
   shared:
     owner: Bifrost-Events
     repo: bifrost-shared

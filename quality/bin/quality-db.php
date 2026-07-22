@@ -4,7 +4,7 @@
 declare(strict_types=1);
 
 /**
- * Quality database-kommandoer med miljøsperrer.
+ * Quality database-kommandoer med miljøsperrer (mot bifrost-admin-core).
  *
  * Bruk:
  *   set BIFROST_DOTENV=.env.local-quality
@@ -88,265 +88,123 @@ function quality_run_mysql(array $db, string $sql, ?string $database = null): vo
     }
 }
 
-function quality_run_mysql_file(array $db, string $file, string $database): void
-{
-    if (!is_file($file)) {
-        throw new RuntimeException('Mangler SQL-fil: ' . $file);
-    }
-
-    $bin = quality_mysql_bin();
-    $args = [
-        escapeshellarg($bin),
-        '-h', escapeshellarg($db['host']),
-        '-u', escapeshellarg($db['user']),
-    ];
-    if ($db['pass'] !== '') {
-        $args[] = '-p' . escapeshellarg($db['pass']);
-    }
-    $args[] = escapeshellarg($database);
-
-    $redirect = stripos(PHP_OS_FAMILY, 'Windows') === 0
-        ? ' < ' . escapeshellarg($file)
-        : ' < ' . escapeshellarg($file);
-
-    $cmd = implode(' ', $args) . $redirect;
-    passthru($cmd, $exitCode);
-    if ($exitCode !== 0) {
-        throw new RuntimeException('mysql import feilet for ' . $file);
-    }
-}
-
-function quality_backend_path(): string
+function quality_admin_core_path(): string
 {
     return quality_backend_path_from_config();
 }
 
-function quality_run_backend_migrate(bool $greenfield): void
+/**
+ * @param array<string, string> $extraEnv
+ */
+function quality_run_admin_core_console(string $subcommand, array $extraEnv = []): void
 {
-    $backendPath = quality_backend_path();
-    $dotenv = (string) Config::get('environment.backend.dotenv', '.env');
-    $console = $backendPath . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'console';
+    $corePath = quality_admin_core_path();
+    $dotenv = quality_backend_dotenv_name();
+    $console = $corePath . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'console';
 
     if (!is_file($console)) {
-        throw new RuntimeException('Mangler backend console: ' . $console);
+        throw new RuntimeException('Mangler admin-core console: ' . $console);
     }
 
     putenv('BIFROST_DOTENV=' . $dotenv);
     $_ENV['BIFROST_DOTENV'] = $dotenv;
     $_SERVER['BIFROST_DOTENV'] = $dotenv;
 
-    $cmd = escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($console)
-        . ' migrate' . ($greenfield ? ' --greenfield' : '');
+    foreach ($extraEnv as $key => $value) {
+        putenv($key . '=' . $value);
+        $_ENV[$key] = $value;
+        $_SERVER[$key] = $value;
+    }
+
+    $php = escapeshellarg(PHP_BINARY);
+    $consoleArg = escapeshellarg($console);
+    $subArg = escapeshellarg($subcommand);
+
+    // Explicit env on the command line — putenv alone is unreliable for child PHP on Windows.
+    $envPairs = array_merge(['BIFROST_DOTENV' => $dotenv], $extraEnv);
+    if (stripos(PHP_OS_FAMILY, 'Windows') === 0) {
+        $prefix = '';
+        foreach ($envPairs as $key => $value) {
+            $prefix .= 'set ' . $key . '=' . $value . '&& ';
+        }
+        $cmd = $prefix . $php . ' ' . $consoleArg . ' ' . $subArg;
+    } else {
+        $prefix = '';
+        foreach ($envPairs as $key => $value) {
+            $prefix .= $key . '=' . escapeshellarg($value) . ' ';
+        }
+        $cmd = $prefix . $php . ' ' . $consoleArg . ' ' . $subArg;
+    }
+
+    $cwd = getcwd();
+    chdir($corePath);
     passthru($cmd, $exitCode);
+    if ($cwd !== false) {
+        chdir($cwd);
+    }
     if ($exitCode !== 0) {
-        throw new RuntimeException('backend migrate feilet.');
+        throw new RuntimeException("admin-core {$subcommand} feilet.");
     }
 }
 
-function quality_shared_seeds_path(): string
+function quality_minimal_seeds_path(): string
 {
-    $backendPath = quality_backend_path();
-    $seeds = realpath($backendPath . '/../bifrost-shared/database/seeds');
-    if ($seeds === false) {
-        throw new RuntimeException('Fant ikke bifrost-shared/database/seeds');
+    $path = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'seeds';
+    if (!is_dir($path)) {
+        throw new RuntimeException('Mangler quality seed-mappe: ' . $path);
     }
 
-    return $seeds;
+    return $path;
 }
 
-function quality_migrations_path(): string
+function quality_events_path(): string
 {
-    $backendPath = quality_backend_path();
-    $migrations = realpath($backendPath . '/../bifrost-shared/database/migrations');
-    if ($migrations === false) {
-        throw new RuntimeException('Fant ikke bifrost-shared/database/migrations');
+    $corePath = quality_admin_core_path();
+    $candidate = realpath($corePath . DIRECTORY_SEPARATOR . 'modules' . DIRECTORY_SEPARATOR . 'events');
+    if ($candidate === false || !is_dir($candidate)) {
+        throw new RuntimeException('Fant ikke events-modul under admin-core/modules/events.');
     }
 
-    return $migrations;
+    return $candidate;
 }
 
-function quality_jaktfelt_migrations_path(): string
+function quality_run_events_console(string $subcommand): void
 {
-    $backendPath = quality_backend_path();
-    $candidates = [
-        $backendPath . '/../../main-projects/jaktfeltnamdalen/database/migrations',
-        $backendPath . '/../main-projects/jaktfeltnamdalen/database/migrations',
-    ];
+    $eventsPath = quality_events_path();
+    $corePath = quality_admin_core_path();
+    $dotenv = '.env.local-quality';
+    $console = $eventsPath . DIRECTORY_SEPARATOR . 'bin' . DIRECTORY_SEPARATOR . 'console';
 
-    foreach ($candidates as $candidate) {
-        $path = realpath($candidate);
-        if ($path !== false && is_dir($path)) {
-            return $path;
-        }
+    if (!is_file($console)) {
+        throw new RuntimeException('Mangler events console: ' . $console);
     }
 
-    throw new RuntimeException(
-        'Fant ikke jaktfeltnamdalen/database/migrations (forventet under main-projects/jaktfeltnamdalen).',
-    );
-}
-
-function quality_ensure_schema_migrations_table(array $db): void
-{
-    quality_run_mysql(
-        $db,
-        'CREATE TABLE IF NOT EXISTS schema_migrations (migration VARCHAR(255) PRIMARY KEY, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci',
-        $db['name'],
-    );
-}
-
-function quality_record_migration(array $db, string $name): void
-{
-    $escaped = str_replace("'", "''", $name);
-    quality_run_mysql(
-        $db,
-        "INSERT IGNORE INTO schema_migrations (migration) VALUES ('{$escaped}')",
-        $db['name'],
-    );
-}
-
-/**
- * Bifrost additive migreringer (auth_*, bifrost_*) — ikke greenfield 001_initial eller prod-backfill.
- */
-function quality_is_bifrost_additive_migration(string $name): bool
-{
-    if ($name === '001_initial_bifrost_schema.sql') {
-        return false;
-    }
-    if (str_contains($name, 'backfill')) {
-        return false;
-    }
-    if (str_starts_with($name, 'auth_')) {
-        return true;
-    }
-    if (str_starts_with($name, 'bifrost_')) {
-        return true;
+    $moduleDotenv = $eventsPath . DIRECTORY_SEPARATOR . $dotenv;
+    $coreDotenv = $corePath . DIRECTORY_SEPARATOR . $dotenv;
+    if (!is_file($moduleDotenv) && !is_file($coreDotenv)) {
+        throw new RuntimeException(
+            'Mangler ' . $dotenv . ' i admin-core eller modules/events (kopier fra .env.local-quality.example).',
+        );
     }
 
-    return false;
-}
+    $php = escapeshellarg(PHP_BINARY);
+    $consoleArg = escapeshellarg($console);
+    $subArg = escapeshellarg($subcommand);
 
-function quality_applied_migrations(array $db): array
-{
-    quality_ensure_schema_migrations_table($db);
-
-    $bin = quality_mysql_bin();
-    $args = [
-        escapeshellarg($bin),
-        '-h', escapeshellarg($db['host']),
-        '-u', escapeshellarg($db['user']),
-        '-N',
-        '-B',
-    ];
-    if ($db['pass'] !== '') {
-        $args[] = '-p' . escapeshellarg($db['pass']);
-    }
-    $args[] = escapeshellarg($db['name']);
-    $args[] = '-e';
-    $args[] = escapeshellarg('SELECT migration FROM schema_migrations');
-
-    $cmd = implode(' ', $args);
-    $output = shell_exec($cmd . ' 2>&1');
-    if (!is_string($output)) {
-        return [];
+    if (stripos(PHP_OS_FAMILY, 'Windows') === 0) {
+        $cmd = 'set BIFROST_DOTENV=' . $dotenv . '&& ' . $php . ' ' . $consoleArg . ' ' . $subArg;
+    } else {
+        $cmd = 'BIFROST_DOTENV=' . escapeshellarg($dotenv) . ' ' . $php . ' ' . $consoleArg . ' ' . $subArg;
     }
 
-    $applied = [];
-    foreach (preg_split('/\R/', trim($output)) ?: [] as $line) {
-        $name = trim($line);
-        if ($name !== '' && !str_starts_with($name, 'ERROR')) {
-            $applied[$name] = true;
-        }
+    $cwd = getcwd();
+    chdir($eventsPath);
+    passthru($cmd, $exitCode);
+    if ($cwd !== false) {
+        chdir($cwd);
     }
-
-    return $applied;
-}
-
-function quality_run_jaktfelt_migrations(): void
-{
-    $db = quality_db_config();
-    $applied = quality_applied_migrations($db);
-
-    $migrationsDir = quality_jaktfelt_migrations_path();
-    $files = glob($migrationsDir . DIRECTORY_SEPARATOR . '*.sql') ?: [];
-    sort($files, SORT_NATURAL);
-
-    foreach ($files as $file) {
-        $name = basename($file);
-        if (isset($applied[$name])) {
-            echo "Hoppet over (allerede kjørt): $name\n";
-            continue;
-        }
-
-        echo "Jaktfelt-migrering: $name\n";
-        quality_run_mysql_file($db, $file, $db['name']);
-        quality_record_migration($db, $name);
-    }
-}
-
-function quality_align_jaktfelt_auth_for_bifrost(): void
-{
-    $db = quality_db_config();
-    $applied = quality_applied_migrations($db);
-    if (!isset($applied['v2_000_auth_shared_schema_stub.sql'])) {
-        return;
-    }
-
-    $marker = '__quality_jaktfelt_auth_bifrost_align';
-    if (isset($applied[$marker])) {
-        return;
-    }
-
-    echo "Tilpasser jaktfelt auth-stub (INT id) for Bifrost FK …\n";
-    foreach ([
-        'ALTER TABLE auth_users MODIFY id INT NOT NULL AUTO_INCREMENT',
-        'ALTER TABLE auth_roles MODIFY id INT NOT NULL AUTO_INCREMENT',
-        'ALTER TABLE auth_applications MODIFY id INT NOT NULL AUTO_INCREMENT',
-    ] as $sql) {
-        quality_run_mysql($db, $sql, $db['name']);
-    }
-    quality_record_migration($db, $marker);
-}
-
-function quality_bootstrap_bifrost_auth_applications(): void
-{
-    $db = quality_db_config();
-    quality_run_mysql(
-        $db,
-        "INSERT IGNORE INTO auth_applications (name) VALUES ('bifrost-admin'), ('bifrost-arrangor'), ('bifrost-public')",
-        $db['name'],
-    );
-}
-
-function quality_run_bifrost_additive_migrations(): void
-{
-    $db = quality_db_config();
-    quality_align_jaktfelt_auth_for_bifrost();
-    $applied = quality_applied_migrations($db);
-
-    $migrationsDir = quality_migrations_path();
-    $files = glob($migrationsDir . DIRECTORY_SEPARATOR . '*.sql') ?: [];
-    sort($files, SORT_NATURAL);
-
-    foreach ($files as $file) {
-        $name = basename($file);
-        if (!quality_is_bifrost_additive_migration($name)) {
-            echo "Hopper over (ikke additiv): $name\n";
-            continue;
-        }
-        if (isset($applied[$name])) {
-            echo "Hoppet over (allerede kjørt): $name\n";
-            continue;
-        }
-        if ($name === 'auth_001_core_schema.sql' && isset($applied['v2_000_auth_shared_schema_stub.sql'])) {
-            echo "Hopper over auth_001 (jaktfelt auth-stub dekker auth_* for quality)\n";
-            quality_bootstrap_bifrost_auth_applications();
-            quality_record_migration($db, $name);
-            continue;
-        }
-
-        echo "Bifrost additiv: $name\n";
-        quality_run_mysql_file($db, $file, $db['name']);
-        quality_record_migration($db, $name);
+    if ($exitCode !== 0) {
+        throw new RuntimeException("events-modul {$subcommand} feilet.");
     }
 }
 
@@ -354,12 +212,15 @@ function quality_print_status(): void
 {
     $db = quality_db_config();
     $backendEnv = quality_backend_dotenv_name();
-    echo "APP_ENV (public-ui): " . Environment::current() . PHP_EOL;
-    echo "Backend env: " . $backendEnv . PHP_EOL;
-    echo "Database (backend): {$db['name']} @ {$db['host']}" . PHP_EOL;
-    echo "canReset: " . (DatabaseResetGuard::canReset() ? 'yes' : 'no') . PHP_EOL;
-    echo "canSeed: " . (DatabaseResetGuard::canSeed() ? 'yes' : 'no') . PHP_EOL;
-    echo "allowsWrites: " . (Environment::allowsWrites() ? 'yes' : 'no') . PHP_EOL;
+    echo 'APP_ENV (public-ui): ' . Environment::current() . PHP_EOL;
+    echo 'Admin-core env: ' . $backendEnv . PHP_EOL;
+    echo "Database (admin-core): {$db['name']} @ {$db['host']}" . PHP_EOL;
+    echo 'Admin-core path: ' . quality_admin_core_path() . PHP_EOL;
+    echo 'Events path: ' . quality_events_path() . PHP_EOL;
+    echo 'Quality seeds: ' . quality_minimal_seeds_path() . PHP_EOL;
+    echo 'canReset: ' . (DatabaseResetGuard::canReset() ? 'yes' : 'no') . PHP_EOL;
+    echo 'canSeed: ' . (DatabaseResetGuard::canSeed() ? 'yes' : 'no') . PHP_EOL;
+    echo 'allowsWrites: ' . (Environment::allowsWrites() ? 'yes' : 'no') . PHP_EOL;
 }
 
 function quality_run_subcommand(string $subcommand): int
@@ -392,9 +253,9 @@ try {
             DatabaseResetGuard::assertResetAllowed();
             $db = quality_db_config();
             if ($db['name'] === '') {
-                throw new RuntimeException('Database-navn er tomt i backend DB_DSN.');
+                throw new RuntimeException('Database-navn er tomt i admin-core DB_DSN.');
             }
-            if (in_array($db['name'], ['jaktfeltkarusell_prod', 'bifrost'], true)) {
+            if (in_array($db['name'], ['jaktfeltkarusell_prod', 'bifrost', 'bifrost_admin_core'], true)) {
                 throw new RuntimeException(
                     'Sikkerhetsstopp: nekter reset av database "' . $db['name'] . '". Bruk bifrost_quality_local.',
                 );
@@ -407,34 +268,22 @@ try {
 
         case 'migrate':
             DatabaseResetGuard::assertMigrateAllowed();
-            echo "Kjører jaktfeltnamdalen-migreringer via mysql …\n";
-            quality_run_jaktfelt_migrations();
-            echo "Kjører Bifrost additive migreringer …\n";
-            quality_run_bifrost_additive_migrations();
+            echo "Kjører bifrost-admin-core migrate …\n";
+            quality_run_admin_core_console('migrate');
+            echo "Kjører events-modul migrate …\n";
+            quality_run_events_console('migrate');
             echo "Migrate fullført.\n";
             exit(0);
 
         case 'seed':
             DatabaseResetGuard::assertSeedAllowed();
-            $db = quality_db_config();
-            $seeds = quality_shared_seeds_path();
-            $files = [
-                '001_local_tenants.sql',
-                '001_local_jaktfelt_cup_data.sql',
-                '002_local_admin_user.sql',
-                '003_quality_local_hosts.sql',
-                '004_quality_competition_fixtures.sql',
-            ];
-            foreach ($files as $file) {
-                $path = $seeds . DIRECTORY_SEPARATOR . $file;
-                if (!is_file($path)) {
-                    echo "Hopper over (finnes ikke): $file\n";
-                    continue;
-                }
-                echo "Seeder: $file\n";
-                quality_run_mysql_file($db, $path, $db['name']);
-            }
-            echo "Seed fullført.\n";
+            // Kun grunndata for staging: standardroller + én admin-bruker.
+            // Organisasjoner, cuper, stevner m.m. opprettes via UI i staging-tester.
+            // Events-demo-seeds kjøres ikke.
+            $seedsPath = str_replace('\\', '/', quality_minimal_seeds_path());
+            echo "Kjører minimal quality-seed (SEEDS_PATH={$seedsPath}) …\n";
+            quality_run_admin_core_console('seed', ['SEEDS_PATH' => $seedsPath]);
+            echo "Seed fullført (roller + quality-admin).\n";
             exit(0);
 
         case 'prepare':
