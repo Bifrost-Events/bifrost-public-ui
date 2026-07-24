@@ -1,0 +1,86 @@
+﻿{
+    "releaseId":  "2026-07-24-001",
+    "createdAt":  "2026-07-24T09:46:19Z",
+    "repositories":  {
+                         "public-ui":  {
+                                           "owner":  "Bifrost-Events",
+                                           "repo":  "bifrost-public-ui",
+                                           "branch":  "main",
+                                           "commit":  "b3036061ba33c8fccc1119a85a0eb9f262bc0ffa",
+                                           "shortCommit":  "b303606",
+                                           "dirty":  false,
+                                           "trackOnly":  false
+                                       },
+                         "admin-core":  {
+                                            "owner":  "Bifrost-Events",
+                                            "repo":  "bifrost-admin-core",
+                                            "branch":  "feature/core-auth-org",
+                                            "commit":  "144c5b943642018e0a224a506ccfafa9614aba1c",
+                                            "shortCommit":  "144c5b9",
+                                            "dirty":  false,
+                                            "trackOnly":  false
+                                        },
+                         "arrangor-ui":  {
+                                             "owner":  "Bifrost-Events",
+                                             "repo":  "bifrost-arrangor-ui",
+                                             "branch":  "main",
+                                             "commit":  "c4aad84bfafcc864a622c2f1e4a114528a0d2f6a",
+                                             "shortCommit":  "c4aad84",
+                                             "dirty":  false,
+                                             "trackOnly":  false
+                                         },
+                         "homepage":  {
+                                          "owner":  "sjurivar",
+                                          "repo":  "bifrost-homepage",
+                                          "branch":  "main",
+                                          "commit":  "90eb498f347e308792b21e562b767858f2edc730",
+                                          "shortCommit":  "90eb498",
+                                          "dirty":  false,
+                                          "trackOnly":  false
+                                      },
+                         "shared":  {
+                                        "owner":  "Bifrost-Events",
+                                        "repo":  "bifrost-shared",
+                                        "branch":  "main",
+                                        "commit":  "349683aa27924fb6403f4d1854ca9e86015f4f58",
+                                        "shortCommit":  "349683a",
+                                        "dirty":  true,
+                                        "trackOnly":  true
+                                    }
+                     },
+    "status":  {
+                   "quality":  {
+                                   "state":  "approved",
+                                   "updatedAt":  "2026-07-24T09:46:56Z"
+                               },
+                   "testDeploy":  {
+                                      "state":  "pending",
+                                      "updatedAt":  null
+                                  },
+                   "testSmoke":  {
+                                     "state":  "pending",
+                                     "updatedAt":  null
+                                 },
+                   "testApproval":  {
+                                        "state":  "pending",
+                                        "updatedAt":  null
+                                    },
+                   "productionDeploy":  {
+                                            "state":  "pending",
+                                            "updatedAt":  null
+                                        },
+                   "productionSmoke":  {
+                                           "state":  "pending",
+                                           "updatedAt":  null
+                                       }
+               },
+    "approvals":  [
+                      {
+                          "type":  "quality",
+                          "method":  "manual",
+                          "by":  "Sjur",
+                          "reason":  "V3-only public portal, V1 branding og build-banner verifisert lokalt (offline portal-tester OK).",
+                          "timestamp":  "2026-07-24T09:46:56Z"
+                      }
+                  ]
+}
