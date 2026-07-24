@@ -12,7 +12,6 @@ final class Session
     private const SESSION_NAME = 'BIFROSTPUBLIC';
 
     private const AUTH_KEY = 'bifrost_public_auth';
-    private const BACKEND_COOKIE_KEY = 'bifrost_public_backend_cookie';
     private const ADMIN_COOKIE_KEY = 'bifrost_public_admin_cookie';
     private const ACTING_PERSON_KEY = 'bifrost_public_acting_person_id';
     private const AUTH_SOURCE_KEY = 'bifrost_public_auth_source';
@@ -87,7 +86,7 @@ final class Session
             }
         }
 
-        if (preg_match('#^/calendar/\d+/(register|unregister)$#', $path) === 1) {
+        if (preg_match('#^/arrangementer/\d+/(pamelding|avmelding)$#', $path) === 1) {
             return true;
         }
 
@@ -119,7 +118,7 @@ final class Session
             return;
         }
 
-        unset($_SESSION[self::AUTH_KEY], $_SESSION[self::BACKEND_COOKIE_KEY], $_SESSION[self::ADMIN_COOKIE_KEY], $_SESSION[self::ACTING_PERSON_KEY], $_SESSION[self::AUTH_SOURCE_KEY], $_SESSION[self::FLASH_KEY]);
+        unset($_SESSION[self::AUTH_KEY], $_SESSION[self::ADMIN_COOKIE_KEY], $_SESSION[self::ACTING_PERSON_KEY], $_SESSION[self::AUTH_SOURCE_KEY], $_SESSION[self::FLASH_KEY]);
         $_SESSION = [];
         if (ini_get('session.use_cookies')) {
             $p = session_get_cookie_params();
@@ -142,32 +141,6 @@ final class Session
         }
 
         unset($_SESSION[self::AUTH_KEY]);
-    }
-
-    public static function setBackendCookie(string $cookie): void
-    {
-        self::startRequired();
-        $_SESSION[self::BACKEND_COOKIE_KEY] = $cookie;
-    }
-
-    public static function getBackendCookie(): string
-    {
-        if (!self::startIfExists()) {
-            return '';
-        }
-
-        $cookie = $_SESSION[self::BACKEND_COOKIE_KEY] ?? '';
-
-        return is_string($cookie) ? $cookie : '';
-    }
-
-    public static function clearBackendCookie(): void
-    {
-        if (!self::isActive()) {
-            return;
-        }
-
-        unset($_SESSION[self::BACKEND_COOKIE_KEY]);
     }
 
     public static function setAdminCookie(string $cookie): void

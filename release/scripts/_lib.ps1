@@ -46,7 +46,13 @@ function Resolve-GithubRepoSlug {
         }
     }
 
-    throw "Fant ikke GitHub-repo for '$RepoKey' i config/repos.yml"
+    # Legacy / utenfor repos.yml (f.eks. bifrost-admin-ui)
+    $legacyOwner = @{
+        'bifrost-homepage' = 'sjurivar'
+    }
+    $owner = if ($legacyOwner.ContainsKey($RepoKey)) { $legacyOwner[$RepoKey] } else { 'Bifrost-Events' }
+    Write-Host "  (repo $RepoKey ikke i repos.yml - bruker $owner/$RepoKey)" -ForegroundColor DarkYellow
+    return "$owner/$RepoKey"
 }
 
 function Get-EnvironmentsConfig {

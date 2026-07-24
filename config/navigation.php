@@ -17,7 +17,7 @@ return [
     ],
     'user' => [
         ['id' => 'user_profile', 'label' => 'Min profil', 'url' => '/min-side/profil'],
-        ['id' => 'user_participants', 'label' => 'Mine deltakere', 'url' => '/min-side/deltakere'],
+        ['id' => 'user_people', 'label' => 'Representerte personer', 'url' => '/min-side/personer'],
         ['id' => 'user_signups', 'label' => 'Mine påmeldinger', 'url' => '/min-side/pameldinger'],
         ['id' => 'user_logout', 'label' => 'Logg ut', 'url' => '/auth/logout', 'class' => 'user-menu-logout'],
     ],

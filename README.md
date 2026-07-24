@@ -24,11 +24,10 @@ Se [quality/README.md](quality/README.md) for `local-dev`, `local-quality`, `tes
 
 - PHP 8.1+
 - Composer
-- **`bifrost-backend`** (V2 hybrid: auth, resultater, påmelding) på http://api.bifrost.local
-- **`bifrost-events`** via admin-core (V3: kalender + portal-kontekst) — sett `EVENTS_URL=http://admin.bifrost.local`
-- Database seed fra **`bifrost-shared`** / admin-core + events seeds
+- **`bifrost-admin-core`** (auth/personer + Events-modul) — sett `ADMIN_URL` / `EVENTS_URL` (f.eks. `http://admin.bifrost.local`)
+- Database seed fra admin-core + events seeds
 
-Se [docs/public-portal-v3-transition.md](docs/public-portal-v3-transition.md) for hybridmodellen.
+Se [docs/public-portal-api-dependencies.md](docs/public-portal-api-dependencies.md).
 
 ## Oppsett
 
@@ -38,9 +37,9 @@ composer install
 copy .env.example .env
 ```
 
-Konfigurer Apache virtual host med document root `bifrost-public-ui/public` og host som matcher en tenant i backend (f.eks. `jaktfeltcup.local` eller `namdal.jaktfeltkarusell.local`).
+Konfigurer Apache virtual host med document root `bifrost-public-ui/public` og host som matcher en app i `app_domains` (f.eks. `jaktfeltcup.local`).
 
-`BACKEND_API_URL` i `.env` peker til backend (standard: `http://api.bifrost.local`).
+Sett `ADMIN_URL` og `EVENTS_URL` (typisk `http://admin.bifrost.local` lokalt).
 
 ## Utvikling
 
@@ -102,18 +101,21 @@ public/index.php          Front controller
 routes/web.php            Ruter
 app/02-view/              Templates (layout + innhold)
 app/03-controller/        HTTP-innganger
-app/04-services/          BackendApiClient
-app/06-support/           Router, Response, PublicView, TenantContext
-config/                   app, backend, navigation, cups/*.json
+app/04-services/          AdminAuthClient, EventsApiClient, …
+app/06-support/           Router, Response, PublicView, PublicPortalContext, CupConfigLoader
+config/                   app, navigation, cups/*.json
 ```
 
-## Tenant-oppslag
+## Tenant- / cup-oppslag
 
-Public-ui resolver aktiv cup fra HTTP-host via `GET /api/tenant/resolve?host=` på bifrost-backend.
+- Portal-identitet: `PublicPortalContext` → `GET /api/public/context?host=`
+- Brand/meny/innhold: `CupConfigLoader` → `config/cups/*.json` via HTTP-host
 
 ## Dokumentasjon
 
-- `docs/public-ui-analysis.md` — kartlegging, veikart og menystruktur
+- [docs/public-portal-api-dependencies.md](docs/public-portal-api-dependencies.md) — API-kontrakt
+- [docs/public-portal-context.md](docs/public-portal-context.md) — host → application
+- `docs/public-ui-analysis.md` — historisk kartlegging
 
 ## Deploy
 

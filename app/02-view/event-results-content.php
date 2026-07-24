@@ -6,7 +6,6 @@ declare(strict_types=1);
 /** @var array<string, array{singular: string, plural: string}> $labels */
 /** @var bool $has_results */
 /** @var list<array{key: string, label: string, rows: list<array<string, mixed>>}> $results_by_class */
-/** @var string|null $v2_results_url */
 /** @var string $event_url */
 /** @var string|null $error */
 
@@ -15,7 +14,9 @@ $eventSingular = (string) ($labels['event']['singular'] ?? 'Arrangement');
 ?>
 <section class="card">
     <p><a href="<?= $h($event_url) ?>">← Tilbake til <?= $h(mb_strtolower($eventSingular)) ?></a></p>
-    <h1>Resultater</h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1>Resultater</h1>
+    <?php endif; ?>
     <p class="muted"><?= $h((string) ($event['name'] ?? '')) ?></p>
     <?php if (!empty($event['starts_at'])): ?>
         <p class="muted"><?= $h((string) $event['starts_at']) ?><?php
@@ -31,12 +32,7 @@ $eventSingular = (string) ($labels['event']['singular'] ?? 'Arrangement');
 
 <?php if (!$has_results): ?>
 <section class="card">
-    <p class="muted">Ingen publiserte resultater i V3 ennå.</p>
-    <?php if (is_string($v2_results_url) && $v2_results_url !== ''): ?>
-        <p data-hybrid="v2">
-            <a class="button" href="<?= $h($v2_results_url) ?>">Se resultater i V2 (midlertidig)</a>
-        </p>
-    <?php endif; ?>
+    <p class="muted">Ingen publiserte resultater ennå.</p>
 </section>
 <?php endif; ?>
 

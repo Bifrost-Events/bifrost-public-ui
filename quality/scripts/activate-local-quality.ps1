@@ -11,6 +11,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $publicUiRoot = Resolve-Path (Join-Path $PSScriptRoot '..\..')
+$adminCoreCandidate = Join-Path $publicUiRoot.Path '..\bifrost-admin-core'
+if (-not (Test-Path $adminCoreCandidate)) {
+    throw "Mangler bifrost-admin-core ved $adminCoreCandidate"
+}
+$adminCoreRoot = (Resolve-Path $adminCoreCandidate).Path
+
 $repos = @(
     @{
         Name = 'bifrost-public-ui'
@@ -18,8 +24,8 @@ $repos = @(
         QualityFile = '.env.local-quality'
     },
     @{
-        Name = 'bifrost-backend'
-        Root = (Resolve-Path (Join-Path $publicUiRoot '..\bifrost-backend')).Path
+        Name = 'bifrost-admin-core'
+        Root = $adminCoreRoot
         QualityFile = '.env.local-quality'
     }
 )

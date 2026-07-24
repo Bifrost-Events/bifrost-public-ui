@@ -28,6 +28,14 @@ async function globalSetup(): Promise<void> {
     );
   }
 
+  // Lettvekt-smoke (modules-up) trenger ikke quality-DB-profil i Apache.
+  if (process.env.QUALITY_SKIP_DB_PREPARE === 'true') {
+    console.log(
+      '[quality] Hopper over Apache quality-profil-sjekk (QUALITY_SKIP_DB_PREPARE).',
+    );
+    return;
+  }
+
   await assertApacheUsesQualityProfile(projectRoot);
 }
 

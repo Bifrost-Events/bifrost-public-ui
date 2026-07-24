@@ -5,13 +5,11 @@ declare(strict_types=1);
 namespace App\Service;
 
 /**
- * Sentral URL-resolver for publikumsportal (V3 primær, V2 kun hybrid).
+ * Sentral URL-resolver for publikumsportal (V3).
  */
 final class EventUrlResolver
 {
     /**
-     * Primær V3-arrangementslenke — alltid basert på event_id.
-     *
      * @param array<string, mixed> $event
      */
     public function v3EventUrl(array $event): ?string
@@ -52,7 +50,6 @@ final class EventUrlResolver
     }
 
     /**
-     * @deprecated Use v3EventUrl() for calendar detail links. Kept as alias during transition.
      * @param array<string, mixed> $event
      */
     public function detailUrl(array $event): ?string
@@ -61,11 +58,8 @@ final class EventUrlResolver
     }
 
     /**
-     * Eksplisitt hybridregel for påmelding — ikke basert på API-feil.
-     *
-     * - `jaktfelt_v3`: event.modules.jaktfelt (settings_json)
-     * - `v2_legacy`: sikker jaktfelt_competitions-mapping uten V3-jaktfelt
-     * - `v3`: generell V3 self-service
+     * - `jaktfelt_v3`: event.modules.jaktfelt
+     * - `v3`: generell self-service
      *
      * @param array<string, mixed> $event
      */
@@ -76,50 +70,6 @@ final class EventUrlResolver
             return 'jaktfelt_v3';
         }
 
-        return $this->v2SignupUrl($event) !== null ? 'v2_legacy' : 'v3';
-    }
-
-    /**
-     * V2-hybrid: påmelding / gammel stevnedetalj — kun ved sikker legacy-mapping.
-     *
-     * @param array<string, mixed> $event Must include legacy source/table/id
-     */
-    public function v2SignupUrl(array $event): ?string
-    {
-        $legacyId = $this->safeJaktfeltCompetitionId($event);
-
-        return $legacyId !== null ? '/calendar/' . $legacyId : null;
-    }
-
-    /**
-     * V2-hybrid: resultater for samme competition-id.
-     *
-     * @param array<string, mixed> $event
-     */
-    public function v2ResultsUrl(array $event): ?string
-    {
-        $legacyId = $this->safeJaktfeltCompetitionId($event);
-
-        return $legacyId !== null ? '/results/' . $legacyId : null;
-    }
-
-    /**
-     * @param array<string, mixed> $event
-     */
-    private function safeJaktfeltCompetitionId(array $event): ?int
-    {
-        $legacy = is_array($event['legacy'] ?? null) ? $event['legacy'] : null;
-        if ($legacy === null) {
-            return null;
-        }
-
-        $table = (string) ($legacy['table'] ?? '');
-        $legacyId = trim((string) ($legacy['id'] ?? ''));
-
-        if ($table === 'jaktfelt_competitions' && $legacyId !== '' && ctype_digit($legacyId)) {
-            return (int) $legacyId;
-        }
-
-        return null;
+        return 'v3';
     }
 }

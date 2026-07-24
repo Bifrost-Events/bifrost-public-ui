@@ -3,22 +3,31 @@
 declare(strict_types=1);
 
 /**
- * Leser databasekonfigurasjon fra bifrost-backend sitt .env (ikke public-ui).
+ * Leser databasekonfigurasjon fra bifrost-admin-core sitt .env (ikke public-ui).
+ * Preferer ADMIN_CORE_PATH / ADMIN_CORE_DOTENV; aksepterer også legacy BACKEND_*.
  */
 
 function quality_backend_path_from_config(): string
 {
-    $path = (string) \App\Support\Config::get('environment.backend.path', '');
+    $path = (string) \App\Support\Config::get('environment.admin_core.path', '');
+    if ($path === '') {
+        $path = (string) \App\Support\Config::get('environment.backend.path', '');
+    }
     if ($path === '' || !is_dir($path)) {
-        throw new RuntimeException('Ugyldig BACKEND_PATH: ' . $path);
+        throw new RuntimeException('Ugyldig ADMIN_CORE_PATH (forventet bifrost-admin-core): ' . $path);
     }
 
-    return $path;
+    return realpath($path) ?: $path;
 }
 
 function quality_backend_dotenv_name(): string
 {
-    return (string) \App\Support\Config::get('environment.backend.dotenv', '.env');
+    $name = (string) \App\Support\Config::get('environment.admin_core.dotenv', '');
+    if ($name === '') {
+        $name = (string) \App\Support\Config::get('environment.backend.dotenv', '.env');
+    }
+
+    return $name !== '' ? $name : '.env';
 }
 
 /**
@@ -31,7 +40,7 @@ function quality_load_backend_env(): array
 
     if (!is_file($envFile)) {
         throw new RuntimeException(
-            'Mangler backend env-fil: ' . $envFile . ' (sjekk BACKEND_DOTENV i public-ui)',
+            'Mangler admin-core env-fil: ' . $envFile . ' (sjekk ADMIN_CORE_DOTENV i public-ui)',
         );
     }
 
@@ -67,7 +76,7 @@ function quality_db_config_from_backend(): array
     $env = quality_load_backend_env();
     $dsn = (string) ($env['DB_DSN'] ?? '');
     if ($dsn === '') {
-        throw new RuntimeException('DB_DSN mangler i backend env (' . quality_backend_dotenv_name() . ')');
+        throw new RuntimeException('DB_DSN mangler i admin-core env (' . quality_backend_dotenv_name() . ')');
     }
 
     $host = '127.0.0.1';

@@ -63,7 +63,7 @@ export function loadQualityEnvProfile(projectRoot: string): QualityEnvProfile {
 
   const backendPath = path.resolve(
     projectRoot,
-    publicVars.BACKEND_PATH ?? '../bifrost-backend',
+    publicVars.BACKEND_PATH ?? '../bifrost-admin-core',
   );
   const backendDotenvFile = publicVars.BACKEND_DOTENV ?? '.env';
   const backendEnvPath = path.join(backendPath, backendDotenvFile);
@@ -100,13 +100,13 @@ export async function assertApacheUsesQualityProfile(
     response = await fetch(healthUrl, { signal: AbortSignal.timeout(15_000) });
   } catch (error) {
     throw new Error(
-      `Kunne ikke nå backend på ${healthUrl}. Start Apache og sjekk api.bifrost.local.\n${String(error)}`,
+      `Kunne ikke nå admin-core API på ${healthUrl}. Start Apache og sjekk api.bifrost.local.\n${String(error)}`,
     );
   }
 
   if (!response.ok) {
     throw new Error(
-      `Backend health feilet (${response.status}) på ${healthUrl}.`,
+      `Admin-core health feilet (${response.status}) på ${healthUrl}.`,
     );
   }
 
@@ -124,7 +124,7 @@ export async function assertApacheUsesQualityProfile(
 
   if (envOk && dbOk) {
     console.log(
-      `[quality] Apache/backend OK: APP_ENV=${liveAppEnv}, database=${liveDatabase}`,
+      `[quality] Apache/admin-core OK: APP_ENV=${liveAppEnv}, database=${liveDatabase}`,
     );
     return;
   }
@@ -133,7 +133,7 @@ export async function assertApacheUsesQualityProfile(
     [
       'Quality kjører mot feil database/profil i Apache.',
       '',
-      `Forventet (fra ${expected.dotenvFile}):`,
+      `Forventet (fra ${expected.dotenvFile} → admin-core):`,
       `  APP_ENV=${expected.backendAppEnv}`,
       `  database=${expected.backendDatabase}`,
       '',

@@ -32,7 +32,14 @@ test.describe('Smoke – portal @smoke', () => {
 
     const marker = app.expected.healthMarker ?? app.key;
     const body = await page.locator('body').textContent();
-    expect(body ?? '').toContain(marker);
+    const text = body ?? '';
+    const adminCoreOk =
+      app.key === 'admin' &&
+      (text.includes('Bifrost Admin Core') || text.includes('"status":"ok"'));
+    expect(
+      text.includes(marker) || adminCoreOk,
+      `Health body should contain "${marker}" (eller Admin Core status)`,
+    ).toBe(true);
 
     await maybeCaptureScreenshot(page, app, envManifest.environment, 'health', testInfo);
     consoleCollector.assertClean();

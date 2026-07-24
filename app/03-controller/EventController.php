@@ -37,10 +37,6 @@ final class EventController
         $event = is_array($data['event'] ?? null) ? $data['event'] : [];
         $title = (string) ($event['name'] ?? ($labels['event']['singular'] ?? 'Arrangement'));
         $hasV3Results = (bool) ($data['has_v3_results'] ?? false);
-        $v2Links = is_array($data['v2_links'] ?? null) ? $data['v2_links'] : [];
-        if ($hasV3Results) {
-            $v2Links['results'] = null;
-        }
 
         $flow = (new EventUrlResolver())->registrationFlow($event);
         $registrationMe = null;
@@ -67,7 +63,6 @@ final class EventController
             'space' => is_array($data['space'] ?? null) ? $data['space'] : null,
             'application' => is_array($data['application'] ?? null) ? $data['application'] : null,
             'labels' => $labels,
-            'v2_links' => $v2Links,
             'has_v3_results' => $hasV3Results,
             'results_url' => is_array($data['urls'] ?? null) ? ($data['urls']['results'] ?? null) : null,
             'registration_flow' => $flow,
@@ -158,10 +153,6 @@ final class EventController
             ? $resultsData['event']
             : (is_array($eventData['event'] ?? null) ? $eventData['event'] : []);
         $hasResults = (bool) ($resultsData['has_results'] ?? false);
-        $v2Results = null;
-        if (!$hasResults && is_array($eventData['v2_links'] ?? null)) {
-            $v2Results = $eventData['v2_links']['results'] ?? null;
-        }
 
         $title = 'Resultater — ' . (string) ($event['name'] ?? ($labels['event']['singular'] ?? 'Arrangement'));
 
@@ -171,7 +162,6 @@ final class EventController
             'has_results' => $hasResults,
             'results_by_class' => is_array($resultsData['results_by_class'] ?? null) ? $resultsData['results_by_class'] : [],
             'classes' => is_array($resultsData['classes'] ?? null) ? $resultsData['classes'] : [],
-            'v2_results_url' => is_string($v2Results) ? $v2Results : null,
             'event_url' => '/arrangementer/' . $eventId,
             'source' => 'v3',
             'error' => ($resultsResult['ok'] ?? false) ? null : (string) ($resultsResult['error'] ?? null),

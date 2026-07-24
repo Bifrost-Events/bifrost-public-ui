@@ -1,5 +1,9 @@
 environment: test
 description: Skybasert manuell test/demo – kun smoke, ingen auto-reset
+apps:
+  - jaktfeltcup
+  - admin
+  - arrangor-jaktfeltcup
 timeouts:
   test: 60000
   expect: 10000

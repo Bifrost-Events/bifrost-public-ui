@@ -4,47 +4,72 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Support\CupConfigLoader;
 use App\Support\PublicView;
 
 final class PlaceholderController
 {
-    public function calendar(): array
-    {
-        return PublicView::renderPlaceholder(
-            'Stevnekalender',
-            'Kommende stevner vises her når public API er på plass i bifrost-backend.'
-        );
-    }
-
-    public function results(): array
-    {
-        return PublicView::renderPlaceholder(
-            'Resultater',
-            'Stevneresultater vises her når public API er på plass i bifrost-backend.'
-        );
-    }
-
-    public function standings(): array
-    {
-        return PublicView::renderPlaceholder(
-            'Sammenlagt',
-            'Cup-sammenlagt vises her når public API er på plass i bifrost-backend.'
-        );
-    }
-
     public function about(): array
     {
-        return PublicView::renderPlaceholder(
-            'Om cupen',
-            'Informasjon om cupen, regler og kontakt kommer her.'
-        );
+        $cup = CupConfigLoader::current();
+        $content = is_array($cup['content'] ?? null) ? $cup['content'] : [];
+        $about = trim((string) ($content['about_text'] ?? ''));
+        $howTo = trim((string) ($content['how_to_participate_text'] ?? ''));
+        $body = $about !== '' ? $about : 'Informasjon om cupen, regler og kontakt.';
+        if ($howTo !== '') {
+            $body .= "\n\n" . $howTo;
+        }
+
+        return PublicView::renderPlaceholder('Om cupen', $body);
+    }
+
+    public function howToParticipate(): array
+    {
+        $cup = CupConfigLoader::current();
+        $content = is_array($cup['content'] ?? null) ? $cup['content'] : [];
+        $text = trim((string) ($content['how_to_participate_text'] ?? ''));
+        if ($text === '') {
+            $text = 'Informasjon om hvordan du deltar kommer her.';
+        }
+
+        return PublicView::renderPlaceholder('Hvordan delta', $text);
+    }
+
+    public function organizerInfo(): array
+    {
+        $cup = CupConfigLoader::current();
+        $content = is_array($cup['content'] ?? null) ? $cup['content'] : [];
+        $text = trim((string) ($content['organizer_info_text'] ?? ''));
+        $portal = CupConfigLoader::organizerPortalUrl($cup);
+        if ($text === '') {
+            $text = 'Informasjon for arrangører.';
+        }
+
+        $extras = [];
+        if ($portal !== '') {
+            $extras = [
+                'cta_url' => $portal,
+                'cta_label' => 'Gå til arrangørportalen',
+            ];
+        }
+
+        return PublicView::renderPlaceholder('Arrangør', $text, $extras);
     }
 
     public function sponsor(): array
     {
+        $cup = CupConfigLoader::current();
+        $sponsors = is_array($cup['sponsors'] ?? null) ? $cup['sponsors'] : [];
+        $lead = trim((string) ($sponsors['lead'] ?? ''));
+        $footer = trim((string) ($sponsors['footer_text'] ?? ''));
+        $body = $lead !== '' ? $lead : 'Sponsorvisning.';
+        if ($footer !== '') {
+            $body .= "\n\n" . $footer;
+        }
+
         return PublicView::renderPlaceholder(
-            'Sponsorer',
-            'Sponsorvisning kommer her.'
+            (string) ($sponsors['heading'] ?? 'Sponsorer'),
+            $body
         );
     }
 
@@ -56,34 +81,15 @@ final class PlaceholderController
         );
     }
 
-    public function login(): array
+    public function finals(): array
     {
-        return PublicView::renderPlaceholder(
-            'Logg inn',
-            'Deltaker-innlogging kobles til auth-service når backend støtter participant-login.'
-        );
-    }
+        $cup = CupConfigLoader::current();
+        $content = is_array($cup['content'] ?? null) ? $cup['content'] : [];
+        $text = trim((string) ($content['finals_text'] ?? ''));
+        if ($text === '') {
+            $text = 'Informasjon om finalehelg kommer her.';
+        }
 
-    public function register(): array
-    {
-        return PublicView::renderPlaceholder(
-            'Registrer deg',
-            'Registrering kobles til auth-service når backend støtter participant-login.'
-        );
-    }
-
-    public function myPage(string $section): array
-    {
-        $titles = [
-            'profil' => 'Min profil',
-            'deltakere' => 'Mine deltakere',
-            'pameldinger' => 'Mine påmeldinger',
-        ];
-        $title = $titles[$section] ?? 'Min side';
-
-        return PublicView::renderPlaceholder(
-            $title,
-            'Innlogget deltakerflate bygges i neste fase.'
-        );
+        return PublicView::renderPlaceholder('Finaler', $text);
     }
 }

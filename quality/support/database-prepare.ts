@@ -23,8 +23,8 @@ export function prepareQualityDatabase(projectRoot: string): void {
     },
   });
 
-  console.log('[quality] Database klar (reset → migrate → seed).');
+  console.log('[quality] Database klar (reset → migrate → minimal seed: roller + admin).');
   console.log(
-    '[quality] Backend må bruke samme profil (f.eks. .env.local-quality) for tenant/API-data.',
+    '[quality] Apache må bruke samme profil (activate / .env.local-quality) for api.bifrost.local.',
   );
 }

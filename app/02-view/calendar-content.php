@@ -17,7 +17,9 @@ $eventPlural = $event_label_plural ?? (string) ($labels['event']['plural'] ?? 'A
 $eventSingular = $event_label_singular ?? (string) ($labels['event']['singular'] ?? 'Arrangement');
 ?>
 <section class="card">
-    <h1><?= $h($eventPlural) ?></h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1><?= $h($eventPlural) ?></h1>
+    <?php endif; ?>
     <?php if ($season !== null): ?>
         <p class="muted">
             <?= $h($seriesLabel) ?>:

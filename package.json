@@ -4,9 +4,12 @@
   "description": "Playwright quality suite for Bifrost platform (public-ui, admin, arrangør)",
   "scripts": {
     "quality:local": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all powershell -ExecutionPolicy Bypass -File quality/scripts/run-local-quality.ps1 test",
+    "quality:smoke": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all QUALITY_SKIP_DB_PREPARE=true playwright test quality/tests/smoke/modules-up.spec.ts",
     "quality:flows": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all powershell -ExecutionPolicy Bypass -File quality/scripts/run-local-quality.ps1 test quality/tests/staging",
     "quality:flows:headed": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all powershell -ExecutionPolicy Bypass -File quality/scripts/run-local-quality.ps1 test quality/tests/staging --headed --workers=1",
     "quality:flows:ui": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all powershell -ExecutionPolicy Bypass -File quality/scripts/run-local-quality.ps1 test quality/tests/staging --ui",
+    "quality:flows:portal": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all powershell -ExecutionPolicy Bypass -File quality/scripts/run-local-quality.ps1 test quality/tests/staging/admin-core.spec.ts quality/tests/staging/arrangor-portal.spec.ts --workers=1",
+    "quality:flows:portal:headed": "cross-env QUALITY_ENV=local-quality QUALITY_APP=all powershell -ExecutionPolicy Bypass -File quality/scripts/run-local-quality.ps1 test quality/tests/staging/admin-core.spec.ts quality/tests/staging/arrangor-portal.spec.ts --headed --workers=1",
     "quality:staging": "cross-env QUALITY_ENV=staging QUALITY_APP=all playwright test",
     "quality:test": "cross-env QUALITY_ENV=test QUALITY_APP=all playwright test quality/tests/smoke",
     "quality:prod-smoke": "cross-env QUALITY_ENV=production QUALITY_APP=all playwright test quality/tests/smoke",

@@ -8,7 +8,9 @@ declare(strict_types=1);
 $h = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ?>
 <section class="card">
-    <h1>Resultater</h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1>Resultater</h1>
+    <?php endif; ?>
     <?php if ($error): ?>
         <p class="status-bad"><?= $h($error) ?></p>
     <?php elseif ($competitions === []): ?>

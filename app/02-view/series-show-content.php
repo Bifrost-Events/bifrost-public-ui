@@ -42,7 +42,9 @@ $pageKindLabel = $isSubseries ? $subseriesLabel : $seriesLabel;
     </nav>
 
     <p class="muted"><?= $h($pageKindLabel) ?></p>
-    <h1><?= $h((string) ($series['name'] ?? '')) ?></h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1><?= $h((string) ($series['name'] ?? '')) ?></h1>
+    <?php endif; ?>
 
     <?php if (!empty($series['season_label'])): ?>
         <p class="muted"><?= $h($seriesLabel) ?>/periode: <?= $h((string) $series['season_label']) ?></p>

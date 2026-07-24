@@ -52,9 +52,9 @@ Write-Host ""
 Write-Host "Lokal quality:"
 $publicUiRoot = (Get-PublicUiRoot).Path
 $localQualityUi = Join-Path $publicUiRoot '.env.local-quality'
-$localQualityBe = Join-Path $publicUiRoot '..\bifrost-backend\.env.local-quality'
+$localQualityCore = Join-Path $publicUiRoot '..\bifrost-admin-core\.env.local-quality'
 Test-Check -Passed (Test-Path $localQualityUi) -Message 'public-ui .env.local-quality'
-Test-Check -Passed (Test-Path $localQualityBe) -Message 'backend .env.local-quality'
+Test-Check -Passed (Test-Path $localQualityCore) -Message 'admin-core .env.local-quality'
 
 Write-Host ""
 Write-Host "Secrets config:"

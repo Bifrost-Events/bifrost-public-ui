@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Service\BackendApiClient;
 use App\Service\PublicCalendarService;
-use App\Support\Auth;
 use App\Support\PublicPortalContext;
 use App\Support\PublicView;
 use App\Support\Response;
-use App\Support\Session;
-use App\Support\TenantContext;
 
 final class CalendarController
 {
@@ -22,8 +18,6 @@ final class CalendarController
         $labels = $calendar['labels'];
         $eventPlural = (string) ($labels['event']['plural'] ?? 'Arrangementer');
         $seriesSingular = (string) ($labels['series']['singular'] ?? 'Serie');
-
-        $title = $eventPlural;
 
         return PublicView::render('calendar-content', [
             'calendar' => $calendar,
@@ -38,82 +32,64 @@ final class CalendarController
             'event_label_plural' => $eventPlural,
             'event_label_singular' => (string) ($labels['event']['singular'] ?? 'Arrangement'),
             'source' => 'v3',
-        ], $title, $calendar['ok'] ? 200 : (($calendar['status'] ?? 0) === 404 ? 404 : 503));
+        ], $eventPlural, $calendar['ok'] ? 200 : (($calendar['status'] ?? 0) === 404 ? 404 : 503));
     }
 
+    /**
+     * Legacy URL: /calendar/{legacyCompetitionId} → V3 arrangement når mapping finnes.
+     */
     public function show(int $id): array
     {
-        // Hybrid: detalj + påmelding fortsatt V2 inntil V3 event-detalj finnes.
-        $host = TenantContext::requestHost();
-        $response = (new BackendApiClient())->competitionSignup($id, $host);
-
-        if (!($response['ok'] ?? false) || !is_array($response['data'])) {
-            Session::setFlash('error', (string) ($response['error'] ?? 'Stevnet finnes ikke'));
-
-            return Response::redirect('/calendar');
+        $eventId = $this->findEventIdByLegacyCompetitionId(PublicPortalContext::requestHost(), $id);
+        if ($eventId !== null) {
+            return Response::redirect('/arrangementer/' . $eventId);
         }
 
-        $data = $response['data'];
-        $user = Auth::user();
-
-        return PublicView::render('calendar-show-content', [
-            'competition' => is_array($data['competition'] ?? null) ? $data['competition'] : [],
-            'registration_open' => (bool) ($data['registration_open'] ?? false),
-            'advance_registration_enabled' => (bool) ($data['advance_registration_enabled'] ?? false),
-            'slots' => is_array($data['slots'] ?? null) ? $data['slots'] : [],
-            'registrations' => is_array($data['registrations'] ?? null) ? $data['registrations'] : [],
-            'reserved_places' => is_array($data['reserved_places'] ?? null) ? $data['reserved_places'] : [],
-            'participants' => is_array($data['participants'] ?? null) ? $data['participants'] : [],
-            'classes' => is_array($data['classes'] ?? null) ? $data['classes'] : [],
-            'my_participant_ids' => is_array($data['my_participant_ids'] ?? null) ? $data['my_participant_ids'] : [],
-            'organizer' => is_array($data['organizer'] ?? null) ? $data['organizer'] : null,
-            'logged_in' => $user !== null,
-            'auth_user_id' => is_array($user) ? (int) ($user['id'] ?? 0) : 0,
-            'data_source' => 'v2',
-        ], (string) (($data['competition']['name'] ?? null) ?: 'Stevne'));
+        return PublicView::render('placeholder-content', [
+            'page_title' => 'Ikke tilgjengelig',
+            'page_description' => 'Denne stevnelenken er ikke lenger i bruk. Gå til stevnekalenderen for aktuelle arrangementer.',
+        ], 'Ikke tilgjengelig', 410);
     }
 
     public function register(int $id): array
     {
-        if ($redirect = Auth::requireBackendSession()) {
-            return $redirect;
+        $eventId = $this->findEventIdByLegacyCompetitionId(PublicPortalContext::requestHost(), $id);
+        if ($eventId !== null) {
+            return Response::redirect('/arrangementer/' . $eventId);
         }
 
-        $host = TenantContext::requestHost();
-        $result = (new BackendApiClient())->registerSignup($host, [
-            'competition_id' => $id,
-            'participant_id' => (int) ($_POST['participant_id'] ?? 0),
-            'slot_id' => !empty($_POST['slot_id']) ? (int) $_POST['slot_id'] : null,
-            'figure_number' => !empty($_POST['figure_number']) ? (int) $_POST['figure_number'] : null,
-        ]);
-
-        if ($result['ok'] ?? false) {
-            Session::setFlash('success', 'Påmelding registrert.');
-        } else {
-            Session::setFlash('error', (string) ($result['error'] ?? 'Kunne ikke melde på'));
-        }
-
-        return Response::redirect('/calendar/' . $id);
+        return Response::redirect('/calendar');
     }
 
     public function unregister(int $id): array
     {
-        if ($redirect = Auth::requireBackendSession()) {
-            return $redirect;
+        return $this->register($id);
+    }
+
+    private function findEventIdByLegacyCompetitionId(string $host, int $legacyId): ?int
+    {
+        $calendar = (new PublicCalendarService())->forHost($host);
+        if (!($calendar['ok'] ?? false)) {
+            return null;
         }
 
-        $host = TenantContext::requestHost();
-        $result = (new BackendApiClient())->unregisterSignup($host, [
-            'competition_id' => $id,
-            'participant_id' => (int) ($_POST['participant_id'] ?? 0),
-        ]);
+        foreach ($calendar['competitions'] as $event) {
+            if (!is_array($event)) {
+                continue;
+            }
+            $legacy = is_array($event['legacy'] ?? null) ? $event['legacy'] : null;
+            if ($legacy === null) {
+                continue;
+            }
+            $table = (string) ($legacy['table'] ?? '');
+            $lid = trim((string) ($legacy['id'] ?? ''));
+            if ($table === 'jaktfelt_competitions' && $lid !== '' && ctype_digit($lid) && (int) $lid === $legacyId) {
+                $eventId = (int) ($event['event_id'] ?? $event['id'] ?? 0);
 
-        if ($result['ok'] ?? false) {
-            Session::setFlash('success', 'Påmelding er avmeldt.');
-        } else {
-            Session::setFlash('error', (string) ($result['error'] ?? 'Kunne ikke avmelde'));
+                return $eventId > 0 ? $eventId : null;
+            }
         }
 
-        return Response::redirect('/calendar/' . $id);
+        return null;
     }
 }

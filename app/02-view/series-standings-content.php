@@ -17,7 +17,9 @@ $eventPlural = (string) ($labels['event']['plural'] ?? 'Arrangementer');
 ?>
 <section class="card">
     <p><a href="<?= $h($series_url) ?>">← Tilbake til <?= $h(mb_strtolower($seriesLabel)) ?></a></p>
-    <h1>Sammenlagt</h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1>Sammenlagt</h1>
+    <?php endif; ?>
     <p class="muted"><?= $h((string) ($series['name'] ?? '')) ?></p>
     <?php if ($resolved_from_series_id): ?>
         <p class="muted">Viser sammenlagt for toppserien (forespurt underserie #<?= (int) $resolved_from_series_id ?>).</p>

@@ -63,25 +63,16 @@ final class PublicCatalogClient
 
         $data = $response['data'];
         $event = is_array($data['event'] ?? null) ? $data['event'] : [];
-        $data['v2_links'] = [
-            // Hybrid — only when EventUrlResolver finds safe legacy mapping
-            'signup' => $this->urls->v2SignupUrl($event),
-            'results' => $this->urls->v2ResultsUrl($event),
-        ];
         $data['urls'] = [
             'self' => $this->urls->v3EventUrl($event),
             'results' => $this->urls->v3EventResultsUrl($event),
         ];
 
-        // Enrich with V3 results availability (for hybrid UX on event page)
         $resultsResponse = $this->client->publicEventResults($host, $eventId);
         $hasV3Results = ($resultsResponse['ok'] ?? false)
             && is_array($resultsResponse['data'] ?? null)
             && (bool) ($resultsResponse['data']['has_results'] ?? false);
         $data['has_v3_results'] = $hasV3Results;
-        if ($hasV3Results) {
-            $data['v2_links']['results'] = null;
-        }
 
         return [
             'ok' => true,
@@ -114,11 +105,6 @@ final class PublicCatalogClient
             'self' => $this->urls->v3EventResultsUrl($event),
             'event' => $this->urls->v3EventUrl($event),
         ];
-
-        // Hybrid: suppress V2 results when V3 data exists (controller also enforces this)
-        if ((bool) ($data['has_results'] ?? false) && is_array($data['v2_links'] ?? null)) {
-            $data['v2_links']['results'] = null;
-        }
 
         return [
             'ok' => true,

@@ -8,7 +8,7 @@ Speilet etter [quality/](../quality): scripts og config i `release/`, npm-wrappe
 
 | Repo | Rolle |
 |------|-------|
-| bifrost-backend | API – deployes først |
+| bifrost-admin-core | API (+ Events-modul) – deployes først |
 | bifrost-public-ui | Public cup-UI |
 | bifrost-admin-ui | Admin – bruker backend |
 | bifrost-homepage | Markedsføringsside – kun production |
@@ -108,7 +108,7 @@ npm run release:deploy -- -ReleaseId 2026-07-02-001 -Environment production
 
 ```powershell
 copy .env.local-quality.example .env.local-quality
-copy .env.local-quality.example ..\bifrost-backend\.env.local-quality
+copy .env.local-quality.example ..\bifrost-admin-core\.env.local-quality
 # admin-ui: .env med BACKEND_API_URL=http://api.bifrost.local
 npm run quality:db:prepare
 npm run quality:local

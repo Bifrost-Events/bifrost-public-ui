@@ -13,6 +13,7 @@ expected:
   visibleText:
     - Jaktfeltcup
   cupKey: nasjonal-15m-jaktfeltcup
+  healthMarker: public_ui
 routes:
   - path: /
     name: Forside

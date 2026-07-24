@@ -54,6 +54,9 @@ return function (array $app): Router {
     $router->get('/sammenlagt', fn () => (new StandingsController())->index());
     $router->get('/om', fn () => $placeholder->about());
     $router->get('/sponsor', fn () => $placeholder->sponsor());
+    $router->get('/arrangor', fn () => $placeholder->organizerInfo());
+    $router->get('/hvordan-delta', fn () => $placeholder->howToParticipate());
+    $router->get('/finaler', fn () => $placeholder->finals());
     $router->get('/arkiv', fn () => $placeholder->archive());
 
     $router->get('/auth/login', fn () => $auth->loginForm());
@@ -67,10 +70,11 @@ return function (array $app): Router {
 
     $onboarding = new OnboardingController();
     $router->get('/onboarding', $requireLogin(fn () => $onboarding->index()));
-    $router->post('/onboarding/participants/{id}/claim', $requireLogin(fn (int $id) => $onboarding->claimParticipant($id)));
 
     $router->get('/min-side/profil', $requireLogin(fn () => (new ProfileController())->show()));
+    $router->post('/min-side/profil', $requireLogin(fn () => (new ProfileController())->updatePerson()));
     $router->post('/min-side/personvelger', $requireLogin(fn () => (new ProfileController())->selectPerson()));
+    $router->get('/min-side/personer', $requireLogin(fn () => (new ProfileController())->peopleIndex()));
     $router->post('/min-side/personer', $requireLogin(fn () => (new ProfileController())->createPerson()));
     $router->get('/min-side/deltakere', $requireLogin(fn () => (new ParticipantController())->index()));
     $router->post('/min-side/deltakere', $requireLogin(fn () => (new ParticipantController())->store()));

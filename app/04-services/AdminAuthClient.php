@@ -33,6 +33,20 @@ final class AdminAuthClient
     }
 
     /**
+     * @param array<string, mixed> $body
+     * @return array{ok: bool, status: int, data: array<string, mixed>|null, error: string|null, code?: string}
+     */
+    public function register(array $body): array
+    {
+        $result = $this->request('POST', '/api/auth/register', $body);
+        if ($result['ok'] ?? false) {
+            $this->captureAdminSessionCookieFromLastResponse();
+        }
+
+        return $result;
+    }
+
+    /**
      * @return array{ok: bool, status: int, data: array<string, mixed>|null, error: string|null, code?: string}
      */
     public function logout(): array
@@ -74,6 +88,24 @@ final class AdminAuthClient
     public function createPerson(array $body): array
     {
         return $this->request('POST', '/api/public/me/people', $body);
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     * @return array{ok: bool, status: int, data: array<string, mixed>|null, error: string|null, code?: string}
+     */
+    public function updatePerson(array $body): array
+    {
+        return $this->request('PATCH', '/api/public/me/person', $body);
+    }
+
+    /**
+     * @param array<string, mixed> $body
+     * @return array{ok: bool, status: int, data: array<string, mixed>|null, error: string|null, code?: string}
+     */
+    public function updatePeoplePerson(int $personId, array $body): array
+    {
+        return $this->request('PATCH', '/api/public/me/people/' . $personId, $body);
     }
 
     /**

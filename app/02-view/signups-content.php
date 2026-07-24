@@ -66,8 +66,10 @@ $renderTable = static function (array $rows, bool $allowCancel) use ($h): void {
 };
 ?>
 <section class="card">
-    <h1>Mine påmeldinger</h1>
-    <p class="muted">V3-påmeldinger for deg og personer du representerer.</p>
+    <?php if (empty($hide_page_title)): ?>
+        <h1>Mine påmeldinger</h1>
+    <?php endif; ?>
+    <p class="muted">Påmeldinger for deg og personer du representerer.</p>
     <?php if (is_array($flash) && ($flash['message'] ?? '') !== ''): ?>
         <p class="<?= ($flash['type'] ?? '') === 'error' ? 'status-bad' : 'muted' ?>"><?= $h((string) $flash['message']) ?></p>
     <?php endif; ?>

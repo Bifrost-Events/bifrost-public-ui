@@ -1,7 +1,7 @@
-# Publikumsportal — API-avhengigheter (hybrid V3 + V2)
+# Publikumsportal — API-avhengigheter (V3 only)
 
 **Repo:** `bifrost-public-ui`  
-**Oppdatert:** 2026-07-16
+**Oppdatert:** 2026-07-24
 
 ---
 
@@ -9,87 +9,50 @@
 
 ```text
 bifrost-public-ui
-  ├─ AdminAuthClient      → ADMIN_URL / EVENTS_URL (bifrost-admin-core)
-  │    POST /api/auth/login
-  │    POST /api/auth/logout
+  ├─ AdminAuthClient      → ADMIN_URL (bifrost-admin-core)
+  │    POST /api/auth/login|register|logout
   │    GET  /api/auth/me
-  │    GET  /api/public/me/people
-  │    POST /api/public/me/people
-  │    GET  /api/public/me/people/{id}
+  │    GET/POST/PATCH /api/public/me/people*
   │
-  ├─ EventsApiClient      → EVENTS_URL (admin / bifrost-events)
-  │    GET /api/public/context
-  │    GET /api/public/calendar
-  │    GET /api/public/event-spaces/{id}
-  │    GET /api/public/event-spaces/{id}/series
-  │    GET /api/public/series/{id}
-  │    GET /api/public/series/{id}/standings
-  │    GET /api/public/events/{id}
-  │    GET /api/public/events/{id}/results
-  │    POST /api/public/events/{id}/registrations
-  │    GET  /api/public/events/{id}/registrations/me
-  │    GET  /api/public/me/registrations
-  │    POST /api/public/registrations/{id}/cancel
+  ├─ EventsApiClient      → EVENTS_URL (admin-core / Events-modul)
+  │    GET /api/public/context|calendar|series|events|results|standings
+  │    POST/GET jaktfelt + generelle registrations
   │
-  └─ BackendApiClient     → BACKEND_API_URL (bifrost-backend V2)
-       health, tenant resolve, auth (hybrid), results, standings, signup (legacy), participant
+  └─ CupConfigLoader      → lokal config/cups/*.json (brand/meny/innhold)
 ```
 
-Alle Events-kall krever `?host=` for application-scope.
+Ingen `bifrost-backend` / V2-klient. Alle Events-kall krever `?host=` for application-scope.
 
 ---
 
-## V3 (Admin Core) — auth
+## Auth (admin-core)
 
 | Metode | Endepunkt | Brukt av |
 |--------|-----------|----------|
-| POST | `/api/auth/login` | `AuthController` / `AdminAuthClient` |
+| POST | `/api/auth/login` | `AuthController` |
+| POST | `/api/auth/register` | `AuthController` |
 | POST | `/api/auth/logout` | `AuthController` |
 | GET | `/api/auth/me` | `Auth` / `ProfileController` |
-| GET | `/api/public/me/people` | `PersonPickerService` |
-| POST | `/api/public/me/people` | `ProfileController::createPerson` |
-| GET | `/api/public/me/people/{id}` | (klar) |
+| GET/POST | `/api/public/me/people` | Personvelger / representerte personer |
+| PATCH | `/api/public/me/people/{id}` | Profiloppdatering |
 
 ---
 
-## V3 (Events) — aktiv
+## Events (public)
 
 | Metode | Endepunkt | Brukt av |
 |--------|-----------|----------|
 | GET | `/api/public/context?host=` | `PublicPortalContext` |
 | GET | `/api/public/calendar?host=` | `PublicCalendarService` |
-| GET | `/api/public/event-spaces/{id}?host=` | (klar for space-side) |
-| GET | `/api/public/event-spaces/{id}/series?host=` | (klar for serieliste) |
-| GET | `/api/public/series/{id}?host=` | `PublicCatalogClient` / `SeriesController` |
-| GET | `/api/public/series/{id}/standings?host=` | `PublicCatalogClient` / `SeriesController::standings` |
-| GET | `/api/public/events/{id}?host=` | `PublicCatalogClient` / `EventController` |
-| GET | `/api/public/events/{id}/results?host=` | `PublicCatalogClient` / `EventController::results` |
-| POST | `/api/public/events/{id}/registrations?host=` | `EventController::register` (auth cookie) |
-| GET | `/api/public/events/{id}/registrations/me?host=` | `EventController::show` |
-| GET | `/api/public/me/registrations?host=` | `SignupController` |
-| POST | `/api/public/registrations/{id}/cancel` | Avmelding |
+| GET | `/api/public/series/{id}?host=` | `PublicCatalogClient` |
+| GET | `/api/public/series/{id}/standings?host=` | Sammenlagt |
+| GET | `/api/public/events/{id}?host=` | Arrangement |
+| GET | `/api/public/events/{id}/results?host=` | Resultater |
+| POST | `/api/public/events/{id}/registrations?host=` | Generell påmelding |
+| GET/POST | `/api/public/jaktfelt/events/{id}/…` | Jaktfelt lag/plass |
+| GET | `/api/public/me/registrations?host=` | Mine påmeldinger |
 
-**Feilstrategi:** kontrollert feilmelding / 404 / 503 — **ingen** V2-fallback for V3-sider.
-
-### Visibility (API)
-
-- `visibility = public`
-- `status = active`
-- ikke soft-deleted
-- ressurs må tilhøre application for request-host (ellers 404)
-
----
-
-## V2 (Backend) — midlertidig hybrid
-
-| Område | Endepunkter | Brukt av |
-|--------|-------------|----------|
-| Tenant | `/api/tenant/resolve` | `TenantContext` (auth/legacy) |
-| Auth | `/api/auth/participant/*` | Hybrid best-effort ved V3-login; påmelding/deltakere |
-| Results index | `/api/public/results` | `ResultsController` |
-| Standings | `/api/public/standings` | `StandingsController` |
-| Signup (V2 detalj) | `/api/public/competitions/{id}/signup` | Kun `v2_legacy` jaktfelt-hybrid |
-| Participant | `/api/participant/*` | Mine deltakere / onboarding (V2) |
+**Feilstrategi:** kontrollert feilmelding / 404 / 503 — ingen V2-fallback.
 
 ---
 
@@ -97,14 +60,26 @@ Alle Events-kall krever `?host=` for application-scope.
 
 | Situasjon | URL |
 |-----------|-----|
-| Kalender → arrangement | `/arrangementer/{event_id}` (V3) |
-| Sesong/serie | `/serier/{series_id}` (V3) |
-| Arrangementsresultater | `/arrangementer/{event_id}/resultater` (V3) |
-| Sammenlagt | `/serier/{series_id}/sammenlagt` (V3) |
-| V2 påmelding (hybrid) | `/calendar/{legacy_id}` — kun `jaktfelt_competitions` + numerisk id |
-| V2 resultater (hybrid) | `/results/{legacy_id}` — kun uten V3-data + samme mapping |
+| Kalender → arrangement | `/arrangementer/{event_id}` |
+| Legacy `/calendar/{legacy_id}` | Redirect til V3-event hvis mapping finnes, ellers 410 |
+| Sesong/serie | `/serier/{series_id}` |
+| Resultater | `/arrangementer/{event_id}/resultater` |
+| Sammenlagt | `/serier/{series_id}/sammenlagt` |
+| Representerte personer | `/min-side/personer` |
 
-Resolver: `App\Service\EventUrlResolver`.
+---
+
+## Env
+
+```env
+ADMIN_URL=http://admin.bifrost.local
+EVENTS_URL=http://admin.bifrost.local
+ADMIN_CORE_PATH=../bifrost-admin-core
+ADMIN_CORE_DOTENV=.env
+ARRANGOR_PORTAL_URL=http://arrangor.jaktfeltcup.local
+```
+
+`BACKEND_API_URL` er ikke i bruk i app-kode. Quality-scripts aksepterer fortsatt `BACKEND_PATH` som alias for `ADMIN_CORE_PATH`.
 
 ---
 
@@ -116,12 +91,3 @@ Resolver: `App\Service\EventUrlResolver`.
 | `namdal.jaktfeltkarusell.local` | `jaktfeltkarusell-namdal` |
 | `slatlemcup.local` | `slatlem` |
 | `skytecuper.bifrost.local` | `skytecuper` |
-
----
-
-## Kommandoer
-
-```bash
-php scripts/test_public_portal_v3.php
-cd ../bifrost-events && php bin/console public-catalog-test
-```

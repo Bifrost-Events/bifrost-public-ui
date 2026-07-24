@@ -73,10 +73,9 @@ $lines = @(
     '# Sett FTP_PASSWORD per hosting-konto (samme som i Deploy-Admin).',
     '',
     'repositories:',
-    '  bifrost-backend:',
+    '  bifrost-admin-core:',
     '    environments:'
 )
-
 $lines += New-EnvYaml 'test' @{
     FTP_HOST = $bifrost.ftp.host
     FTP_USERNAME = $bifrost.ftp.username
@@ -149,7 +148,7 @@ $lines += New-EnvYaml 'production' @{
 $lines += @(
     '',
     '# Passord per hosting-konto (fyll inn over):',
-    "#   $($bifrost.ftp.username) -> bifrost-backend + bifrost-admin-ui + bifrost-homepage",
+    "#   $($bifrost.ftp.username) -> bifrost-admin-core + bifrost-admin-ui + bifrost-homepage",
     "#   $($jaktfeltkarusell.ftp.username) -> bifrost-public-ui test",
     "#   $($jaktfeltcup.ftp.username) -> bifrost-public-ui production"
 )

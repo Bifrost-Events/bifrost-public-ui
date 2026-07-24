@@ -8,6 +8,8 @@ declare(strict_types=1);
 $h = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 ?>
 <section class="card">
-    <h1>Logg inn</h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1>Logg inn</h1>
+    <?php endif; ?>
     <?php include __DIR__ . '/auth-login-fragment.php'; ?>
 </section>

@@ -5,11 +5,9 @@ declare(strict_types=1);
 namespace App\Support;
 
 use App\Service\AdminAuthClient;
-use App\Service\BackendApiClient;
 
 /**
- * Public auth: V3 (admin-core) er primær.
- * V2 backend-session beholdes separat for hybrid påmelding/deltakere.
+ * Public auth via admin-core (BIFROSTADMIN-sesjon).
  */
 final class Auth
 {
@@ -58,25 +56,6 @@ final class Auth
         return null;
     }
 
-    /** Krever gyldig V2 backend-session for hybrid påmelding/deltakere. */
-    public static function requireBackendSession(): ?array
-    {
-        if (Session::getBackendCookie() === '') {
-            Session::setFlash('error', 'Denne funksjonen bruker fortsatt V2. Logg inn på nytt, eller bruk V2-påmelding når V3-sesjon ikke er koblet.');
-
-            return Response::redirect(self::loginUrlForCurrentRequest());
-        }
-
-        $me = (new BackendApiClient())->me();
-        if (($me['ok'] ?? false) && is_array($me['data']['user'] ?? null)) {
-            return null;
-        }
-
-        Session::setFlash('error', 'V2-sesjonen utløp. Logg inn på nytt for å fortsette med påmelding/deltakere.');
-
-        return Response::redirect(self::loginUrlForCurrentRequest());
-    }
-
     /** @return array<string, mixed>|null */
     private static function resolveUser(): ?array
     {
@@ -84,7 +63,6 @@ final class Auth
             return null;
         }
 
-        // Primær: V3 admin-core
         if (Session::getAdminCookie() !== '') {
             $me = (new AdminAuthClient())->me();
             if (($me['ok'] ?? false) && is_array($me['data'] ?? null)) {
@@ -95,19 +73,6 @@ final class Auth
                 return $user;
             }
             Session::clearAdminCookie();
-        }
-
-        // Ingen automatisk V2-fallback for V3-sider — kun eksplisitt V2-cookie for hybrid
-        if (Session::getBackendCookie() !== '' && Session::getAuthSource() === 'v2') {
-            $me = (new BackendApiClient())->me();
-            if (($me['ok'] ?? false) && is_array($me['data']['user'] ?? null)) {
-                $user = $me['data']['user'];
-                Session::setAuth($user);
-                Session::setAuthSource('v2');
-
-                return $user;
-            }
-            Session::clearBackendCookie();
         }
 
         Session::clearAuth();

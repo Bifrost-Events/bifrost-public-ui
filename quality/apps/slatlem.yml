@@ -13,6 +13,7 @@ expected:
   visibleText:
     - Slatlem
   cupKey: slatlem-cup
+  healthMarker: public_ui
 routes:
   - path: /
     name: Forside

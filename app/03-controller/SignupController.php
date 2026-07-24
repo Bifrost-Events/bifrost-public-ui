@@ -12,7 +12,7 @@ use App\Support\Response;
 use App\Support\Session;
 
 /**
- * Mine påmeldinger — V3 primær, V2-liste beholdes som hybridinfo der relevant.
+ * Mine påmeldinger via Events API.
  */
 final class SignupController
 {

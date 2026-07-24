@@ -162,6 +162,22 @@ final class CupConfigLoader
     }
 
     /**
+     * Arrangørportal-URL fra cup-config, ellers ARRANGOR_PORTAL_URL env.
+     *
+     * @param array<string, mixed>|null $cupConfig
+     */
+    public static function organizerPortalUrl(?array $cupConfig = null): string
+    {
+        $cupConfig ??= self::current();
+        $fromCup = trim((string) ($cupConfig['organizer_portal_url'] ?? ''));
+        if ($fromCup !== '') {
+            return $fromCup;
+        }
+
+        return trim((string) ($_ENV['ARRANGOR_PORTAL_URL'] ?? ''));
+    }
+
+    /**
      * @param array<string, mixed> $cupConfig
      * @return array<string, string>
      */
@@ -169,23 +185,31 @@ final class CupConfigLoader
     {
         $brand = is_array($cupConfig['brand'] ?? null) ? $cupConfig['brand'] : [];
         $primary = (string) ($brand['primary_color'] ?? '#2c5530');
-        $secondary = (string) ($brand['secondary_color'] ?? $primary);
-        $accent = (string) ($brand['accent_color'] ?? '#e8f0e9');
+        $secondary = (string) ($brand['secondary_color'] ?? $brand['primary_dark'] ?? $primary);
+        $primaryLight = (string) ($brand['primary_light'] ?? '#b48c64');
+        $primaryHover = (string) ($brand['primary_hover'] ?? $secondary);
+        $accentSoft = (string) ($brand['accent_color'] ?? '#f5ebe3');
+        $accentBorder = (string) ($brand['accent_border'] ?? '#dee2e6');
         $headerBg = (string) ($brand['header_bg'] ?? $secondary);
-        $primaryLight = (string) ($brand['primary_light'] ?? $accent);
+        $headerText = (string) ($brand['header_text'] ?? '#ffffff');
+        $headerOverlay = (string) ($brand['header_overlay'] ?? 'rgba(255,255,255,0.15)');
+        $submenuHover = (string) ($brand['submenu_hover_bg'] ?? $accentSoft);
 
         return [
             '--bg' => '#f5f5f5',
             '--header' => $headerBg,
-            '--header-text' => '#ffffff',
+            '--header-text' => $headerText,
+            '--header-overlay' => $headerOverlay,
             '--card' => '#ffffff',
             '--ink' => '#1a1a18',
             '--muted' => '#5c5c58',
-            '--line' => '#d4d8d2',
+            '--line' => $accentBorder,
             '--accent' => $primary,
-            '--accent-hover' => $secondary,
-            '--accent-soft' => $accent,
+            '--accent-hover' => $primaryHover,
+            '--accent-dark' => $secondary,
+            '--accent-soft' => $accentSoft,
             '--accent-light' => $primaryLight,
+            '--submenu-hover' => $submenuHover,
             '--bad' => '#9b2c2c',
             '--ok' => $primary,
             '--link' => $primary,

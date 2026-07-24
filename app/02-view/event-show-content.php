@@ -7,7 +7,6 @@ declare(strict_types=1);
 /** @var list<array<string, mixed>> $breadcrumb */
 /** @var array<string, mixed>|null $space */
 /** @var array<string, array{singular: string, plural: string}> $labels */
-/** @var array{signup?: string|null, results?: string|null} $v2_links */
 /** @var bool $has_v3_results */
 /** @var string|null $results_url */
 /** @var string $registration_flow */
@@ -23,8 +22,6 @@ $seriesLabel = (string) ($labels['series']['singular'] ?? 'Serie');
 $subseriesLabel = (string) ($labels['subseries']['singular'] ?? 'Underserie');
 $spaceLabel = (string) ($labels['event_space']['singular'] ?? 'Event Space');
 
-$v2Signup = is_string($v2_links['signup'] ?? null) ? $v2_links['signup'] : null;
-$v2Results = is_string($v2_links['results'] ?? null) ? $v2_links['results'] : null;
 $owner = is_array($event['owner_organization'] ?? null) ? $event['owner_organization'] : null;
 ?>
 <section class="card">
@@ -45,7 +42,9 @@ $owner = is_array($event['owner_organization'] ?? null) ? $event['owner_organiza
     </nav>
 
     <p class="muted"><?= $h($eventSingular) ?></p>
-    <h1><?= $h((string) ($event['name'] ?? '')) ?></h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1><?= $h((string) ($event['name'] ?? '')) ?></h1>
+    <?php endif; ?>
 
     <?php if (!empty($event['starts_at'])): ?>
         <p><strong>Tid:</strong> <?= $h((string) $event['starts_at']) ?><?php
@@ -119,10 +118,7 @@ $owner = is_array($event['owner_organization'] ?? null) ? $event['owner_organiza
             <p class="<?= ($flash['type'] ?? '') === 'error' ? 'status-bad' : 'muted' ?>"><?= $h((string) $flash['message']) ?></p>
         <?php endif; ?>
 
-        <?php if ($flow === 'v2_legacy' && $v2Signup !== null): ?>
-            <p class="muted">Dette arrangementet bruker midlertidig V2-påmelding (legacy).</p>
-            <p data-hybrid="v2"><a class="button" href="<?= $h($v2Signup) ?>">Meld på (V2)</a></p>
-        <?php elseif ($flow === 'jaktfelt_v3'): ?>
+        <?php if ($flow === 'jaktfelt_v3'): ?>
             <?php
             $jfSlots = is_array($jaktfelt_slots ?? null) ? $jaktfelt_slots : null;
             $jfRegs = is_array($regMe['registrations'] ?? null) ? $regMe['registrations'] : [];
@@ -267,25 +263,6 @@ $owner = is_array($event['owner_organization'] ?? null) ? $event['owner_organiza
         <?php endif; ?>
     </div>
 
-    <?php if ($flow !== 'v2_legacy' && ($v2Signup !== null || $v2Results !== null)): ?>
-        <div class="hybrid-v2-actions" data-hybrid="v2">
-            <h2>Handlinger (midlertidig V2)</h2>
-            <p class="muted">Disse lenkene går til eksisterende V2-flyt via sikker legacy-mapping.</p>
-            <p>
-                <?php if ($v2Signup !== null): ?>
-                    <a class="button" href="<?= $h($v2Signup) ?>">Påmelding (V2)</a>
-                <?php endif; ?>
-                <?php if ($v2Results !== null): ?>
-                    <a class="button" href="<?= $h($v2Results) ?>">Resultater (V2)</a>
-                <?php endif; ?>
-            </p>
-        </div>
-    <?php elseif ($flow === 'v2_legacy' && $v2Results !== null): ?>
-        <div class="hybrid-v2-actions" data-hybrid="v2">
-            <p data-hybrid="v2"><a class="button" href="<?= $h($v2Results) ?>">Resultater (V2)</a></p>
-        </div>
-    <?php endif; ?>
-
     <?php
     $hasV3Results = (bool) ($has_v3_results ?? false);
     $resultsUrl = is_string($results_url ?? null) ? $results_url : null;
@@ -294,9 +271,6 @@ $owner = is_array($event['owner_organization'] ?? null) ? $event['owner_organiza
         <h2>Resultater</h2>
         <?php if ($hasV3Results && $resultsUrl !== null): ?>
             <p><a class="button" href="<?= $h($resultsUrl) ?>">Se resultater</a></p>
-        <?php elseif ($v2Results !== null): ?>
-            <p class="muted">Ingen V3-resultater publisert ennå.</p>
-            <p data-hybrid="v2"><a class="button" href="<?= $h($v2Results) ?>">Se resultater i V2 (midlertidig)</a></p>
         <?php else: ?>
             <p class="muted">Ingen publiserte resultater ennå.</p>
             <?php if ($resultsUrl !== null): ?>

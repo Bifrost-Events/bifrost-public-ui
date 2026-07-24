@@ -1,5 +1,9 @@
 environment: production
-description: Produksjon – kun read-only smoke
+description: Produksjon – kun read-only smoke (public, admin, arrangør)
+apps:
+  - jaktfeltcup
+  - admin
+  - arrangor-jaktfeltcup
 timeouts:
   test: 45000
   expect: 8000

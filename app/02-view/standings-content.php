@@ -10,7 +10,9 @@ $h = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBS
 $classGroups = is_array($standings['class_groups'] ?? null) ? $standings['class_groups'] : [];
 ?>
 <section class="card">
-    <h1>Sammenlagt</h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1>Sammenlagt</h1>
+    <?php endif; ?>
     <?php if ($season !== null): ?>
         <p class="muted"><?= $h((string) ($season['name'] ?? '')) ?> (<?= $h((string) ($season['year'] ?? '')) ?>)</p>
     <?php endif; ?>

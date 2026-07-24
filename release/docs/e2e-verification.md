@@ -16,11 +16,11 @@ Sjekkliste for å verifisere at release-flyten fungerer ende-til-ende.
 
 - [ ] `deploy-secrets.local.yml` er fylt ut og synket (`npm run release:sync-secrets`)
 
-- [ ] GitHub Environments `test` og `production` finnes i **bifrost-backend**, **bifrost-public-ui**, **bifrost-admin-ui** og **bifrost-homepage** (homepage kun `production`)
+- [ ] GitHub Environments `test` og `production` finnes i **bifrost-admin-core**, **bifrost-public-ui**, **bifrost-admin-ui** og **bifrost-homepage** (homepage kun `production`)
 
 - [ ] `FTP_PATH` og `APP_URL` er korrekte for test og production
 
-- [ ] `bifrost-backend/database/` er synket fra bifrost-shared ved behov
+- [ ] `bifrost-admin-core/database/` (og modul-migreringer) er synket / kjørt ved behov
 
 
 

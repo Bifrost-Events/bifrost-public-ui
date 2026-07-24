@@ -12,7 +12,9 @@ $userAgreementHtml = nl2br($h($userAgreement['text'] ?? ''));
 $returnTo = $return_to ?? '/onboarding';
 ?>
 <section class="card auth-register-box">
-    <h1>Registrer deg</h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1>Registrer deg</h1>
+    <?php endif; ?>
     <?php if ($error !== ''): ?>
         <div class="login-modal-error"><?= $h($error) ?></div>
     <?php endif; ?>

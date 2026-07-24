@@ -8,10 +8,7 @@ use App\Service\EventsApiClient;
 use App\Service\V3EventMapper;
 
 /**
- * V3 portal-kontekst: host → application / Event Space / labels.
- *
- * Primær kilde for portal-identitet i V3-flyt. TenantContext beholdes midlertidig
- * for V2 auth/resultater/påmelding.
+ * Portal-kontekst: host → application / Event Space / labels via Events API.
  */
 final class PublicPortalContext
 {

@@ -21,7 +21,9 @@ foreach ($results as $row) {
 ?>
 <section class="card">
     <p><a href="/results">← Tilbake til resultater</a></p>
-    <h1><?= $h((string) ($competition['name'] ?? 'Stevne')) ?></h1>
+    <?php if (empty($hide_page_title)): ?>
+        <h1><?= $h((string) ($competition['name'] ?? 'Stevne')) ?></h1>
+    <?php endif; ?>
     <p class="muted">
         <?= $h((string) ($competition['competition_date'] ?? '')) ?>
         <?php if (!empty($competition['location'])): ?>

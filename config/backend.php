@@ -1,9 +1,11 @@
 <?php
 
-require_once __DIR__ . '/require-env.php';
+declare(strict_types=1);
 
-require_env('BACKEND_API_URL');
-
+/**
+ * Legacy config-nøkkel — beholdt tom for bakoverkompatibilitet.
+ * Bruk ADMIN_URL / EVENTS_URL via config/admin.php og config/events.php.
+ */
 return [
-    'api_base_url' => rtrim((string) $_ENV['BACKEND_API_URL'], '/'),
+    'api_base_url' => '',
 ];

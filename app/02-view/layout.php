@@ -5,7 +5,6 @@ declare(strict_types=1);
 /** @var string $title */
 /** @var string $content */
 /** @var array<string, mixed> $portal_context */
-/** @var array<string, mixed> $tenant_context */
 /** @var array<string, mixed> $cup_config */
 /** @var array<string, mixed>|null $user */
 /** @var list<array<string, mixed>> $nav_items */
@@ -16,13 +15,11 @@ declare(strict_types=1);
 $h = static fn (string $s): string => htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 
 $portalContext = $portal_context ?? [];
-$tenantContext = $tenant_context ?? [];
 $cupConfig = is_array($cup_config ?? null) ? $cup_config : \App\Support\CupConfigLoader::current();
 $brand = is_array($cupConfig['brand'] ?? null) ? $cupConfig['brand'] : [];
 $cssVars = \App\Support\CupConfigLoader::cssVariables($cupConfig);
 $displayName = (string) ($cupConfig['name']
-    ?? ($portalContext['display_name'] ?? null)
-    ?? ($tenantContext['display_name'] ?? 'Bifrost'));
+    ?? ($portalContext['display_name'] ?? 'Bifrost'));
 $shortName = (string) ($cupConfig['short_name'] ?? $displayName);
 $tagline = (string) ($brand['tagline'] ?? '');
 $logoUrl = trim((string) ($brand['logo'] ?? ''));
@@ -55,13 +52,18 @@ if (is_array($user)) {
             --bg: <?= $h($cssVars['--bg']) ?>;
             --header: <?= $h($cssVars['--header']) ?>;
             --header-text: <?= $h($cssVars['--header-text']) ?>;
+            --header-overlay: <?= $h($cssVars['--header-overlay'] ?? 'rgba(255,255,255,0.15)') ?>;
             --card: <?= $h($cssVars['--card']) ?>;
             --ink: <?= $h($cssVars['--ink']) ?>;
             --muted: <?= $h($cssVars['--muted']) ?>;
             --line: <?= $h($cssVars['--line']) ?>;
             --accent: <?= $h($cssVars['--accent']) ?>;
+            --accent-hover: <?= $h($cssVars['--accent-hover'] ?? $cssVars['--accent']) ?>;
+            --accent-dark: <?= $h($cssVars['--accent-dark'] ?? $cssVars['--accent']) ?>;
             --accent-soft: <?= $h($cssVars['--accent-soft']) ?>;
             --accent-light: <?= $h($cssVars['--accent-light']) ?>;
+            --submenu-hover: <?= $h($cssVars['--submenu-hover'] ?? $cssVars['--accent-soft']) ?>;
+            --link: <?= $h($cssVars['--link'] ?? $cssVars['--accent']) ?>;
             --bad: <?= $h($cssVars['--bad']) ?>;
             --ok: <?= $h($cssVars['--ok']) ?>;
         }
@@ -73,7 +75,7 @@ if (is_array($user)) {
             color: var(--ink);
             line-height: 1.5;
         }
-        a { color: var(--accent); }
+        a { color: var(--link); }
         .site-header {
             background: var(--header);
             color: var(--header-text);
@@ -107,7 +109,7 @@ if (is_array($user)) {
             display: block;
             font-weight: 400;
             font-size: 0.78rem;
-            color: #b8c4bc;
+            color: var(--accent-light);
             margin-top: 0.15rem;
         }
         .main-nav ul {
@@ -127,7 +129,7 @@ if (is_array($user)) {
         }
         .main-nav a:hover,
         .main-nav a.is-active {
-            background: rgba(255,255,255,0.12);
+            background: var(--header-overlay);
         }
         .auth-actions {
             display: flex;
@@ -172,12 +174,16 @@ if (is_array($user)) {
             background: var(--accent);
             color: #fff;
         }
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            color: #fff;
+        }
         .btn-outline {
             background: #fff;
             color: var(--accent);
             border: 1px solid var(--accent);
         }
-        .btn-outline:hover { background: var(--accent-soft); }
+        .btn-outline:hover { background: var(--accent-soft); color: var(--accent-dark); }
         .dev-config-banner {
             background: #1e293b;
             color: #e2e8f0;
@@ -186,21 +192,86 @@ if (is_array($user)) {
             text-align: center;
         }
         .dev-config-banner code { color: #fbbf24; }
-        .page-hero { padding: 0; overflow: hidden; border: none; }
+        .portal-notice {
+            background: var(--accent-soft);
+            border-bottom: 1px solid var(--accent-light);
+            color: var(--accent-dark);
+            font-size: 0.92rem;
+            padding: 0.65rem 1.25rem;
+            text-align: center;
+            line-height: 1.4;
+        }
+        .portal-notice strong { font-weight: 700; }
+        .page-hero { padding: 0; overflow: hidden; border: none; position: relative; }
         .page-hero-inner {
             display: grid;
             grid-template-columns: 1fr;
             gap: 1rem;
-            min-height: 200px;
-            background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, #fff) 0%, color-mix(in srgb, var(--accent-light) 40%, #fff) 55%, #fff 100%);
+            min-height: 220px;
+            /* V1: brun → lys brun → hvit */
+            background:
+                linear-gradient(90deg, var(--accent) 0%, var(--accent) 10%),
+                linear-gradient(90deg, var(--accent) 10%, var(--accent-light) 66%),
+                linear-gradient(90deg, var(--accent-light) 66%, #ffffff 100%);
+            background-size: 10% 100%, 56% 100%, 34% 100%;
+            background-position: 0 0, 10% 0, 66% 0;
+            background-repeat: no-repeat;
             padding: 1.5rem 1.35rem;
+            color: #111;
+        }
+        .page-hero--compact .page-hero-inner {
+            min-height: 140px;
+            padding: 1.15rem 1.35rem;
+        }
+        .page-hero--compact::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 1rem;
+            transform: translateY(-50%);
+            width: min(160px, 28vw);
+            height: min(160px, 28vw);
+            background-image: var(--page-hero-logo, none);
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.35;
+            pointer-events: none;
         }
         @media (min-width: 720px) {
-            .page-hero-inner { grid-template-columns: 1.2fr 0.8fr; align-items: center; }
+            .page-hero:not(.page-hero--compact) .page-hero-inner {
+                grid-template-columns: 1.2fr 0.8fr;
+                align-items: center;
+            }
         }
-        .page-hero h1 { margin: 0 0 0.5rem; font-size: clamp(1.35rem, 3vw, 2rem); }
-        .page-hero-subtitle { color: var(--muted); margin: 0 0 1rem; }
+        main h1, main h2 { color: var(--accent); }
+        main .page-hero h1 { color: #111; }
+        main a:not(.btn):not(.button):not(.brand-link):not(.main-nav a):not(.auth-actions a):not(.user-menu-panel a) {
+            color: var(--link);
+        }
+        .page-hero h1 { margin: 0 0 0.5rem; font-size: clamp(1.35rem, 3vw, 2rem); color: #111; }
+        .page-hero-subtitle { color: rgba(17, 17, 17, 0.78); margin: 0 0 1rem; }
         .page-hero-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .page-hero-actions .btn-primary {
+            background: rgba(120, 80, 50, 0.92);
+            border: 2px solid var(--accent-dark);
+            color: #fff;
+            font-weight: 600;
+        }
+        .page-hero-actions .btn-primary:hover {
+            background: var(--accent);
+            border-color: var(--accent-dark);
+        }
+        .page-hero-actions .btn-outline {
+            background: transparent;
+            border: 2px solid var(--accent);
+            color: var(--accent-dark);
+            font-weight: 600;
+        }
+        .page-hero-actions .btn-outline:hover {
+            background: var(--accent);
+            color: #fff;
+        }
         .page-hero-visual {
             min-height: 120px;
             background-size: contain;
@@ -394,7 +465,7 @@ if (is_array($user)) {
         }
         .flash-info { background: #eef4ff; border: 1px solid #c5d5f5; }
         .flash-error { background: #fdecec; border: 1px solid #f0c4c4; color: var(--bad); }
-        .flash-success { background: var(--accent-soft); border: 1px solid #b8d4bc; color: var(--ok); }
+        .flash-success { background: var(--accent-soft); border: 1px solid var(--accent-light); color: var(--accent-dark); }
         .status-ok { color: var(--ok); }
         .status-bad { color: var(--bad); }
         .data-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
@@ -427,6 +498,7 @@ if (is_array($user)) {
             text-align: center;
             color: var(--muted);
             font-size: 0.88rem;
+            background: var(--accent-soft);
         }
         @media (max-width: 720px) {
             .header-inner { flex-direction: column; align-items: flex-start; }
@@ -490,9 +562,7 @@ if (is_array($user)) {
                 </span>
             </a>
             <?php if (!($portalContext['resolved'] ?? false) && ($portalContext['error'] ?? null) !== null): ?>
-                <small>V3-app ikke funnet for <?= $h((string) ($portalContext['host'] ?? '')) ?></small>
-            <?php elseif (!($tenantContext['resolved'] ?? false) && ($tenantContext['error'] ?? null) !== null): ?>
-                <small>V2-tenant ikke funnet for <?= $h((string) ($tenantContext['host'] ?? '')) ?> (hybrid)</small>
+                <small>App ikke funnet for <?= $h((string) ($portalContext['host'] ?? '')) ?></small>
             <?php endif; ?>
         </div>
         <nav class="main-nav" aria-label="Hovedmeny">
@@ -518,8 +588,16 @@ if (is_array($user)) {
     </div>
 </header>
 
+<div class="portal-notice" role="status">
+    <strong>Portalen er under oppbygging.</strong>
+    Vi tar sikte på at den er klar i løpet av september.
+</div>
+
 <main>
     <?php include __DIR__ . '/partials/_flash.php'; ?>
+    <?php if (!empty($show_page_hero)): ?>
+        <?php include __DIR__ . '/partials/_page_hero.php'; ?>
+    <?php endif; ?>
     <?= $content ?>
 </main>
 

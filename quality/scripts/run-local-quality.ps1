@@ -27,8 +27,13 @@ try {
         Write-Host ''
     }
 
-    $playwrightCmd = if ($PlaywrightArgs.Count -gt 0) { $PlaywrightArgs } else { @('test') }
-    npx playwright @playwrightCmd
+    # Force array — string splat in PowerShell expands to characters ("test" → t e s t).
+    $playwrightCmd = if ($null -ne $PlaywrightArgs -and @($PlaywrightArgs).Count -gt 0) {
+        @($PlaywrightArgs)
+    } else {
+        @('test')
+    }
+    & npx playwright @playwrightCmd
     $exitCode = $LASTEXITCODE
 } finally {
     if ($activated) {

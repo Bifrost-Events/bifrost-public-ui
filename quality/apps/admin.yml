@@ -15,3 +15,17 @@ expected:
 routes:
   - path: /login
     name: Login
+  - path: /
+    name: Dashboard
+  - path: /core/organizations
+    name: Organisasjoner
+  - path: /core/persons
+    name: Personer
+  - path: /core/users
+    name: Brukere
+  - path: /core/applications
+    name: Applikasjoner
+  - path: /core/domains
+    name: Domener
+  - path: /core/roles
+    name: Roller

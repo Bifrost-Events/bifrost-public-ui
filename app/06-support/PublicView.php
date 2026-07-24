@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Support;
 
-use App\Service\BackendApiClient;
-
 final class PublicView
 {
     /**
@@ -20,29 +18,15 @@ final class PublicView
         $user = Auth::user();
         $currentPath = parse_url((string) ($_SERVER['REQUEST_URI'] ?? '/'), PHP_URL_PATH) ?: '/';
         $pageTitle = $title ?? (string) ($cupConfig['name'] ?? $portalContext['display_name']);
-
-        // TenantContext: midlertidig V2 for auth/resultater — ikke portal-identitet for V3.
-        $tenantContext = null;
-        try {
-            $tenantContext = TenantContext::current();
-        } catch (\Throwable $e) {
-            error_log('[PublicView] TenantContext failed: ' . $e->getMessage());
-            $tenantContext = [
-                'host' => PublicPortalContext::requestHost(),
-                'resolved' => false,
-                'error' => $e->getMessage(),
-                'tenant' => null,
-                'display_name' => $portalContext['display_name'],
-                'features' => [],
-            ];
-        }
+        $isHome = $partial === 'home-content' || $currentPath === '/';
+        $brand = is_array($cupConfig['brand'] ?? null) ? $cupConfig['brand'] : [];
 
         $contentData['portal_context'] = $portalContext;
-        $contentData['tenant_context'] = $tenantContext;
         $contentData['cup_config'] = $cupConfig;
         $contentData['user'] = $user;
         $contentData['current_path'] = $currentPath;
         $contentData['labels'] = $contentData['labels'] ?? $portalContext['labels'];
+        $contentData['hide_page_title'] = !$isHome;
         $content = Response::partial($partial, $contentData);
 
         $menuItems = CupConfigLoader::menuItems($cupConfig);
@@ -54,14 +38,16 @@ final class PublicView
             'title' => $pageTitle,
             'content' => $content,
             'portal_context' => $portalContext,
-            'tenant_context' => $tenantContext,
             'cup_config' => $cupConfig,
             'user' => $user,
             'nav_items' => $menuItems,
             'user_menu_items' => PublicMenu::userItems(),
             'current_path' => $currentPath,
             'flash' => Session::pullFlash(),
-            'backend_health' => null,
+            'show_page_hero' => !$isHome,
+            'page_hero_title' => $pageTitle,
+            'page_hero_subtitle' => '',
+            'page_hero_logo' => (string) ($brand['logo'] ?? $brand['hero_image'] ?? ''),
         ], $status);
     }
 
@@ -83,22 +69,23 @@ final class PublicView
     {
         $portalContext = PublicPortalContext::current();
         $cupConfig = CupConfigLoader::current();
-        $client = new BackendApiClient();
 
         return self::render('home-content', [
-            'health' => $client->health(),
             'portal_context' => $portalContext,
         ], (string) ($cupConfig['name'] ?? $portalContext['display_name']));
     }
 
     /**
+     * @param array{cta_url?: string, cta_label?: string} $extras
      * @return array{status: int, headers: array<string, string>, body: string}
      */
-    public static function renderPlaceholder(string $title, string $description): array
+    public static function renderPlaceholder(string $title, string $description, array $extras = []): array
     {
         return self::render('placeholder-content', [
             'page_title' => $title,
             'page_description' => $description,
+            'cta_url' => trim((string) ($extras['cta_url'] ?? '')),
+            'cta_label' => trim((string) ($extras['cta_label'] ?? '')),
         ], $title);
     }
 }

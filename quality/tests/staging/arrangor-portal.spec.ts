@@ -1,14 +1,32 @@
 import { test, expect, skipIfAppNotReady } from '../../support/fixtures';
+import { loadAppByKey } from '../../support/app-config';
 import {
-  approveLatestOrganizerApplication,
-  completeOrganizerOnboarding,
+  CUP_SEASON_YEAR,
+  JAKTFELTCUP_ROUND_COUNT,
+  approveOrganizerApplication,
+  createArrangorOrganization,
+  createArrangorSeason,
+  cupSeasonName,
   loginArrangorUser,
-  registerParticipantViaApi,
+  logoutArrangorUser,
+  openSeasonForOrganizerApplications,
+  portalCupForArrangorApp,
+  publicAppKeyForArrangor,
+  registerParticipantUser,
+  setupJaktfeltcupRounds,
+  setupKarusellDirectEvents,
+  submitOrganizerApplication,
   uniqueTestEmail,
   uniqueTestPerson,
 } from '../../support/staging-helpers';
 
-test.describe('Staging / arrangør @staging', () => {
+/**
+ * Staging mot bifrost-arrangor-ui (Portal V3).
+ * Testplan: quality/docs/test-plans/arrangor-portal.md (AP-01 … AP-03)
+ *
+ * Forutsetter admin-core AC-03 (apper, org, eier, event spaces) — uten sesonger.
+ */
+test.describe('Staging / arrangør-portal V3 @staging', () => {
   test.beforeEach(({ app }) => {
     test.skip(
       app.key !== 'arrangor-jaktfeltcup' && app.key !== 'arrangor-namdal',
@@ -17,73 +35,143 @@ test.describe('Staging / arrangør @staging', () => {
     skipIfAppNotReady(app);
   });
 
-  test('arrangør kan registrere organisasjon, få godkjenning og opprette stevne', async ({
-    page,
-    request,
-  }) => {
-    const password = 'QualityTest1!';
-    const person = uniqueTestPerson('Arr');
-    const user = {
-      ...person,
-      email: uniqueTestEmail('arrangor'),
-    };
-    const orgName = `Quality Arrangør ${Date.now().toString(36)}`;
+  test('cup-eier kan opprette sesong', async ({ page, app }) => {
+    test.setTimeout(60_000);
 
-    await registerParticipantViaApi(request, { ...user, password });
-    await loginArrangorUser(page, user.email, password);
-    await completeOrganizerOnboarding(page, orgName);
+    const cup = portalCupForArrangorApp(app.key);
+    expect(cup, `Ingen PORTAL_CUPS-mapping for ${app.key}`).toBeTruthy();
 
-    const pendingBadge = page.getByText('Venter på godkjenning');
-    if (await pendingBadge.isVisible().catch(() => false)) {
-      await approveLatestOrganizerApplication(request);
-      await page.reload();
-    }
+    await loginArrangorUser(page, cup!.owner.email, cup!.owner.password);
 
-    await expect(page.locator('span.badge-ok', { hasText: 'Godkjent' })).toBeVisible({
-      timeout: 15_000,
+    const seasonName = cupSeasonName(cup!);
+    const seasonId = await createArrangorSeason(page, {
+      name: seasonName,
+      shortName: CUP_SEASON_YEAR,
+      seasonLabel: CUP_SEASON_YEAR,
+      status: 'active',
+      visibility: 'public',
     });
 
-    await page.goto('/stevner/ny');
-    const competitionName = `Quality stevne ${Date.now().toString(36)}`;
-    const roundSelect = page.locator('#round_id');
-    await expect(roundSelect).toBeVisible({ timeout: 15_000 });
-    await roundSelect.selectOption({ index: 1 });
-    const eventDate = await roundSelect
-      .locator('option:checked')
-      .getAttribute('data-start-date');
-    expect(eventDate, 'Valgt runde må ha startdato i seed').toBeTruthy();
-    await page.locator('#name').fill(competitionName);
-    await page.locator('#event_date').fill(eventDate!);
-    await page.getByRole('button', { name: 'Opprett' }).click();
-    await page.waitForURL((url) => url.pathname.replace(/\/$/, '') === '/stevner', {
-      timeout: 30_000,
+    await expect(page).toHaveURL(new RegExp(`/sesonger/${seasonId}/struktur`));
+    await expect(page.locator('.flash.success')).toContainText(/Serie opprettet/i);
+    await expect(page.getByRole('heading', { name: 'Sesongstruktur' })).toBeVisible();
+
+    await page.goto('/cup');
+    const seasonCard = page.locator('.card', {
+      has: page.locator(`a[href="/sesonger/${seasonId}/struktur"]`),
     });
-    await expect(page.locator('body')).toContainText(competitionName);
+    await expect(seasonCard).toContainText(seasonName);
+    await expect(
+      seasonCard.getByRole('link', { name: /^Sett struktur$/i }),
+    ).toBeVisible();
   });
 
-  test('arrangør kan invitere medlem', async ({ page, request }) => {
-    const password = 'QualityTest1!';
-    const person = uniqueTestPerson('Inv');
-    const user = {
-      ...person,
-      email: uniqueTestEmail('arr-inviter'),
-    };
-    const orgName = `Quality Invite Org ${Date.now().toString(36)}`;
-    const inviteEmail = uniqueTestEmail('arr-invitee');
+  test('cup-eier setter opp sesongstruktur', async ({ page, app }) => {
+    test.setTimeout(120_000);
 
-    await registerParticipantViaApi(request, { ...user, password });
-    await loginArrangorUser(page, user.email, password);
-    await completeOrganizerOnboarding(page, orgName);
+    const cup = portalCupForArrangorApp(app.key);
+    expect(cup, `Ingen PORTAL_CUPS-mapping for ${app.key}`).toBeTruthy();
 
-    if (await page.getByText('Venter på godkjenning').isVisible().catch(() => false)) {
-      await approveLatestOrganizerApplication(request);
-      await page.reload();
+    await loginArrangorUser(page, cup!.owner.email, cup!.owner.password);
+
+    const seasonName = cupSeasonName(cup!);
+    const seasonId = await createArrangorSeason(page, {
+      name: seasonName,
+      shortName: CUP_SEASON_YEAR,
+      seasonLabel: CUP_SEASON_YEAR,
+      status: 'active',
+      visibility: 'public',
+    });
+
+    if (app.key === 'arrangor-jaktfeltcup') {
+      await setupJaktfeltcupRounds(page, seasonId, JAKTFELTCUP_ROUND_COUNT);
+
+      await page.goto('/cup');
+      const seasonCard = page.locator('.card', {
+        has: page.locator(`a[href="/sesonger/${seasonId}/struktur"]`),
+      });
+      await expect(seasonCard).toContainText(seasonName);
+      await expect(seasonCard).toContainText(/gruppert i runder/i);
+      for (let i = 1; i <= JAKTFELTCUP_ROUND_COUNT; i += 1) {
+        await expect(seasonCard).toContainText(`Runde ${i}`);
+      }
+      await expect(
+        seasonCard.getByRole('link', { name: /^Ny runde$/i }),
+      ).toBeVisible();
+      return;
     }
 
-    await page.goto('/organisasjon/medlemmer');
-    await page.locator('#email').fill(inviteEmail);
-    await page.getByRole('button', { name: 'Send invitasjon' }).click();
-    await page.waitForURL(/\/organisasjon\/medlemmer/, { timeout: 15_000 });
-    await expect(page.locator('body')).toContainText('Invitasjon sendt');
+    await setupKarusellDirectEvents(page, seasonId);
+
+    await page.goto('/cup');
+    const seasonCard = page.locator('.card', {
+      has: page.locator(`a[href="/sesonger/${seasonId}/struktur"]`),
+    });
+    await expect(seasonCard).toContainText(seasonName);
+    await expect(seasonCard).toContainText(/Stevner direkte i sesong/i);
+    await expect(
+      seasonCard.getByRole('link', { name: /^Nytt stevne$/i }),
+    ).toBeVisible();
+    await expect(
+      seasonCard.getByRole('link', { name: /^Ny runde$/i }),
+    ).toHaveCount(0);
+  });
+
+  test('bruker kan registrere seg, søke og få søknad godkjent', async ({
+    page,
+    app,
+  }) => {
+    test.setTimeout(180_000);
+
+    const cup = portalCupForArrangorApp(app.key);
+    expect(cup, `Ingen PORTAL_CUPS-mapping for ${app.key}`).toBeTruthy();
+
+    const publicApp = loadAppByKey(publicAppKeyForArrangor(app.key));
+    const password = 'QualityArr123!';
+    const person = uniqueTestPerson('Sok');
+    const email = uniqueTestEmail('arr-soknad');
+    const orgName = `Quality Arrangør ${Date.now().toString(36)}`;
+    const eventName = `Quality stevne ${Date.now().toString(36)}`;
+    const seasonName = cupSeasonName(cup!);
+
+    await loginArrangorUser(page, cup!.owner.email, cup!.owner.password);
+    const seasonId = await createArrangorSeason(page, {
+      name: seasonName,
+      shortName: CUP_SEASON_YEAR,
+      seasonLabel: CUP_SEASON_YEAR,
+      status: 'active',
+      visibility: 'public',
+    });
+    if (app.key === 'arrangor-jaktfeltcup') {
+      await setupJaktfeltcupRounds(page, seasonId, JAKTFELTCUP_ROUND_COUNT);
+    } else {
+      await setupKarusellDirectEvents(page, seasonId);
+    }
+    await openSeasonForOrganizerApplications(page, seasonId);
+    await logoutArrangorUser(page);
+
+    await registerParticipantUser(
+      page,
+      {
+        firstName: person.firstName,
+        lastName: person.lastName,
+        phone: person.phone,
+        email,
+        password,
+      },
+      { baseUrl: publicApp.baseUrl },
+    );
+
+    await loginArrangorUser(page, email, password);
+    await createArrangorOrganization(page, orgName);
+    const applicationId = await submitOrganizerApplication(page, {
+      seasonId,
+      eventName,
+      message: 'Quality staging søknad',
+    });
+    await logoutArrangorUser(page);
+
+    await loginArrangorUser(page, cup!.owner.email, cup!.owner.password);
+    await approveOrganizerApplication(page, seasonId, applicationId);
   });
 });

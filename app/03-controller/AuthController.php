@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\AdminAuthClient;
-use App\Service\BackendApiClient;
 use App\Support\Auth;
 use App\Support\PublicMenu;
 use App\Support\PublicView;
 use App\Support\RegistrationAgreements;
 use App\Support\Response;
 use App\Support\Session;
-use App\Support\TenantContext;
 
 final class AuthController
 {
@@ -37,7 +35,7 @@ final class AuthController
     public function registerForm(): array
     {
         if (Auth::check()) {
-            return Response::redirect('/onboarding');
+            return Response::redirect('/min-side/profil');
         }
 
         return PublicView::render('auth-register-content', [
@@ -50,7 +48,7 @@ final class AuthController
     public function registerFormFragment(): array
     {
         if (Auth::check()) {
-            return Response::json(['mode' => 'redirect', 'url' => '/onboarding']);
+            return Response::json(['mode' => 'redirect', 'url' => '/min-side/profil']);
         }
 
         return Response::json(['mode' => 'redirect', 'url' => '/auth/register?return_to=' . rawurlencode($this->resolveReturnTo((string) ($_GET['return_to'] ?? '')))]);
@@ -112,12 +110,6 @@ final class AuthController
                 Session::setActingPersonId((int) $user['person_id']);
             }
 
-            // Hybrid: best-effort V2 session for signup/deltakere (same credentials, may fail)
-            $v2 = (new BackendApiClient())->participantLogin($email, $password);
-            if (!($v2['ok'] ?? false)) {
-                // Keep V3 session; V2 features will prompt separately
-            }
-
             if ($isAjax) {
                 return Response::json([
                     'success' => true,
@@ -145,7 +137,7 @@ final class AuthController
     {
         Session::startRequired();
         $isAjax = ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') === 'XMLHttpRequest';
-        $returnTo = $this->resolveReturnTo(trim((string) ($_POST['return_to'] ?? '/onboarding')));
+        $returnTo = $this->resolveReturnTo(trim((string) ($_POST['return_to'] ?? '/min-side/profil')));
         $userAgreement = RegistrationAgreements::userAgreement();
         $currentUserVer = $userAgreement['version'];
 
@@ -191,75 +183,50 @@ final class AuthController
             return $err('Passordene er ikke like.');
         }
 
-        $tenant = TenantContext::current();
-        $tenantId = is_array($tenant['tenant'] ?? null) ? (int) ($tenant['tenant']['id'] ?? 0) : 0;
+        $result = (new AdminAuthClient())->register([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email,
+            'phone' => $phone,
+            'password' => $password,
+            'password_confirm' => $passwordConfirm,
+        ]);
 
-        $result = (new BackendApiClient())->participantRegister(
-            $email,
-            $password,
-            $firstName,
-            $lastName,
-            $phone,
-            $tenantId > 0 ? $tenantId : null,
-            $userAgreementVersion,
-        );
-
-        if (!($result['ok'] ?? false) || !is_array($result['data']['user'] ?? null)) {
+        if (!($result['ok'] ?? false) || !is_array($result['data'] ?? null)) {
             $error = (string) ($result['error'] ?? 'Registrering feilet');
-            if (str_contains(strtolower($error), 'allerede')) {
+            if (str_contains(strtolower($error), 'allerede') || str_contains(strtolower($error), 'already')) {
                 $error = 'E-postadressen er allerede registrert. Logg inn i stedet.';
             }
 
             return $err($error);
         }
 
-        Session::setAuth($result['data']['user']);
-        $this->applyOnboardingSummaryFromRegister($result['data']['onboarding'] ?? []);
+        $user = $result['data'];
+        Session::setAuth($user);
+        Session::setAuthSource('v3');
+        if ((int) ($user['person_id'] ?? 0) > 0) {
+            Session::setActingPersonId((int) $user['person_id']);
+        }
 
+        Session::setFlash('info', 'Fullfør profilen din.');
+
+        $profileUrl = '/min-side/profil';
         if ($isAjax) {
             return Response::json([
                 'success' => true,
-                'returnTo' => '/onboarding',
-                'user' => $result['data']['user'],
+                'returnTo' => $profileUrl,
+                'user' => $user,
+                'auth_source' => 'v3',
             ]);
         }
 
-        return Response::redirect('/onboarding');
-    }
-
-    /** @param array<string, mixed> $onboarding */
-    private function applyOnboardingSummaryFromRegister(array $onboarding): void
-    {
-        if (!isset($_SESSION['onboarding_summary']) || !is_array($_SESSION['onboarding_summary'])) {
-            $_SESSION['onboarding_summary'] = [];
-        }
-
-        $existing = $onboarding['existing_participant'] ?? null;
-        if (is_array($existing)) {
-            $_SESSION['onboarding_existing_participant'] = $existing;
-            $isMine = !empty($existing['is_mine']);
-            $_SESSION['onboarding_summary']['participant_status'] = $isMine ? 'found_mine' : 'found_other';
-            $_SESSION['onboarding_summary']['participant_id'] = (int) ($existing['id'] ?? 0);
-            $_SESSION['onboarding_summary']['participant_name'] = (string) ($existing['name'] ?? '');
-            $_SESSION['onboarding_summary']['participant_jaktfelt_id'] = $existing['jaktfelt_id'] ?? null;
-
-            return;
-        }
-
-        $created = $onboarding['created_participant'] ?? null;
-        if (is_array($created)) {
-            $_SESSION['onboarding_summary']['participant_status'] = 'created';
-            $_SESSION['onboarding_summary']['participant_id'] = (int) ($created['id'] ?? 0);
-            $_SESSION['onboarding_summary']['participant_name'] = (string) ($created['name'] ?? '');
-            $_SESSION['onboarding_summary']['participant_jaktfelt_id'] = $created['jaktfelt_id'] ?? null;
-        }
+        return Response::redirect($profileUrl);
     }
 
     public function logout(): array
     {
         Session::startRequired();
         (new AdminAuthClient())->logout();
-        (new BackendApiClient())->logout();
         Session::clear();
 
         return Response::redirect('/');
@@ -269,7 +236,7 @@ final class AuthController
     {
         $returnTo = trim($returnTo);
         if ($returnTo === '' || !str_starts_with($returnTo, '/')) {
-            return '/onboarding';
+            return '/min-side/profil';
         }
 
         return $returnTo;
