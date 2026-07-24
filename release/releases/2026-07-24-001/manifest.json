@@ -1,4 +1,4 @@
-﻿{
+{
     "releaseId":  "2026-07-24-001",
     "createdAt":  "2026-07-24T09:46:19Z",
     "repositories":  {
@@ -54,8 +54,8 @@
                                    "updatedAt":  "2026-07-24T09:46:56Z"
                                },
                    "testDeploy":  {
-                                      "state":  "pending",
-                                      "updatedAt":  null
+                                      "state":  "ok",
+                                      "updatedAt":  "2026-07-24T09:52:14Z"
                                   },
                    "testSmoke":  {
                                      "state":  "pending",
